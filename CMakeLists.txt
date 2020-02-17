@@ -12,6 +12,12 @@ add_custom_command(OUTPUT src/Parser.tab.cc include/Parser.tab.hh
     COMMAND mv Parser.tab.hh include/Parser.tab.hh
     DEPENDS src/Parser.y)
 
+add_custom_command(OUTPUT src/lex.yy.cc
+    COMMAND flex src/Grammer.l
+    COMMAND mv lex.yy.c src/lex.yy.cc
+    DEPENDS src/Grammer.l)
+
 add_executable(BASIC_Compiler
     src/Parser.tab.cc
-    src/test.cpp)
+    src/test.cpp
+    src/lex.yy.cc)

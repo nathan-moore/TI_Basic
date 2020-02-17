@@ -12,3 +12,4 @@ _deps
 
 src/Parser.tab.cc
 include/Parser.tab.hh
+src/lex.yy.cc

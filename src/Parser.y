@@ -11,9 +11,12 @@
 
 %{
     #include "ASTNode.hpp"
+    #include "Parser.tab.hh"
+
+    yy::parser::symbol_type yylex(void);
 %}
 
-%token T_Quote T_If T_Equals T_Not_Equals T_Then T_Else T_Done T_End
+%token T_If T_Equals T_Not_Equals T_Then T_Else T_Done T_End
 %token T_Disp
 %token <char*> T_String
 
