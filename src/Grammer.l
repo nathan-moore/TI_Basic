@@ -1,6 +1,6 @@
 %{
-    #include "Parser.tab.hh"
     #include "Driver.hh"
+    #include "Parser.tab.hh"
 
     using namespace yy;
 %}
@@ -11,4 +11,6 @@
 %%
 
 "=" return parser::make_T_Equals();
-\"[^\"]*\" return parser::make_T_String(yytext);
+\"[^\"\n]*[\"\n] return parser::make_T_String(yytext);
+"Disp " return parser::make_T_Disp();
+<<EOF>> { drv.noop(); return parser::make_END_OF_FILE(); }

@@ -2,18 +2,21 @@
 %language "c++"
 %define api.value.type variant
 %define api.token.constructor
+%debug
 
 %code requires {
     #include <string>
     #include <memory>
     #include "ASTNode.hpp"
+    class driver;
 }
+
+%param {driver& drv }
 
 %{
     #include "ASTNode.hpp"
     #include "Parser.tab.hh"
-
-    yy::parser::symbol_type yylex(void);
+    #include "Driver.hh"
 %}
 
 %token T_If T_Equals T_Not_Equals T_Then T_Else T_Done T_End
@@ -25,14 +28,14 @@
 %type <std::string> Displayable;
 %type <std::shared_ptr<AstNode>> command C_Disp if_stmt statement;
 %type <std::shared_ptr<InstructionList>> instruction_list else_part;
-%type <std::shared_ptr<ExpNode>> exp;
+%type <std::shared_ptr<BinaryExpNode>> exp;
 
 %%
 
 program: 
     instruction_list
     {
-
+        drv.topNode = $1;
     };
 
 instruction_list:

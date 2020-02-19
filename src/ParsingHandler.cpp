@@ -1,0 +1,46 @@
+#include "Parser.tab.hh"
+#include "Driver.hh"
+
+#include <cstdlib>
+#include <iostream>
+
+extern FILE* yyin;
+
+namespace yy{
+
+void parser::error(const std::string& str)
+{
+    std::cout << "Failure at " << str << std::endl;
+    exit(1);
+}
+
+}
+
+driver::driver()
+: result(-1)
+{
+}
+
+int driver::parse(FILE* f)
+{
+    yyin = f;
+    yy::parser parse(*this);
+
+    result = parse();
+
+    fclose(f);
+    return result;
+}
+
+int driver::parseString(const std::string& str)
+{
+    FILE* f = fmemopen((void*)str.c_str(), str.length(), "r");
+    return parse(f);
+}
+
+int driver::parse(const std::string& fileName)
+{
+    FILE* f = fopen(fileName.c_str(), "r");
+    return parse(f);
+}
+

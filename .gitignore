@@ -9,7 +9,9 @@ install_manifest.txt
 compile_commands.json
 CTestTestfile.cmake
 _deps
+.vscode
 
+build
 src/Parser.tab.cc
 include/Parser.tab.hh
 src/lex.yy.cc
