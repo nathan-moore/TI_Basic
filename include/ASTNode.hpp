@@ -10,8 +10,9 @@
 
 enum class Instructions
 {
-    IF,
-    Disp
+    Disp,
+    Nothing,
+    Equals
 };
 
 class AstNode
@@ -21,9 +22,24 @@ public:
     virtual void InOrderWalk(ASTWalker* walker) = 0;
 };
 
-class VariableNode : public AstNode
+class ExpNode : public AstNode
+{ };
+
+class VariableNode : public ExpNode
 {
     //TODO: Symbol table?
+};
+
+//TODO: shouldn't inherit from ExpNode?
+class LiteralNode : public ExpNode
+{
+public:
+    const std::variant<int, float> literal;
+
+    LiteralNode(int i) : literal(i) {}
+
+    LiteralNode(float f) : literal(f) {}
+    void InOrderWalk(ASTWalker* walker) override;
 };
 
 //TODO: change?
@@ -49,7 +65,7 @@ public:
     void InOrderWalk(ASTWalker*);
 };
 
-class BinaryExpNode : public AstNode
+class BinaryExpNode : public ExpNode
 {
 public:
     const std::shared_ptr<AstNode> leftNode;
@@ -63,13 +79,13 @@ public:
 class FlowControl : public AstNode
 {
 public:
-    const std::shared_ptr<BinaryExpNode> condition;
+    const std::shared_ptr<ExpNode> condition;
     const std::shared_ptr<InstructionList> ifList;
     const std::shared_ptr<InstructionList> elseList;
 
     //First Condition
     //Second First branch
     //Third Optional Else branch
-    FlowControl(std::shared_ptr<BinaryExpNode>, std::shared_ptr<InstructionList>, std::shared_ptr<InstructionList>);
+    FlowControl(std::shared_ptr<ExpNode>, std::shared_ptr<InstructionList>, std::shared_ptr<InstructionList>);
     void InOrderWalk(ASTWalker* walker) override;
 };

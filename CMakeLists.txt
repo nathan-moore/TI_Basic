@@ -16,8 +16,7 @@ find_package(BISON)
 BISON_TARGET(MyParser src/Parser.y ${CMAKE_CURRENT_BINARY_DIR}/Parser.tab.cc
              DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/Parser.tab.hh)
 
-FLEX_TARGET(MyScanner src/Grammer.l ${CMAKE_CURRENT_BINARY_DIR}/lex.yy.cc 
-            COMPILE_FLAGS -d)
+FLEX_TARGET(MyScanner src/Grammer.l ${CMAKE_CURRENT_BINARY_DIR}/lex.yy.cc)
 ADD_FLEX_BISON_DEPENDENCY(MyScanner MyParser)
 
 add_library(Comp_library

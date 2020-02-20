@@ -40,7 +40,7 @@ void BinaryExpNode::InOrderWalk(ASTWalker* walker)
     rightNode->InOrderWalk(walker);
 }
 
-FlowControl::FlowControl(std::shared_ptr<BinaryExpNode> exp, 
+FlowControl::FlowControl(std::shared_ptr<ExpNode> exp,
     std::shared_ptr<InstructionList> ifBranch,
     std::shared_ptr<InstructionList> elseBranch)
     : condition(exp),
@@ -57,4 +57,9 @@ void FlowControl::InOrderWalk(ASTWalker* walker)
     {
         elseList->InOrderWalk(walker);
     }
+}
+
+void LiteralNode::InOrderWalk(ASTWalker* walker)
+{
+    walker->WalkNode(this);
 }

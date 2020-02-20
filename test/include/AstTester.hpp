@@ -24,4 +24,6 @@ public:
     void WalkNode(InstructionNode*) override;
     void WalkNode(FlowControl*) override;
     void WalkNode(BinaryExpNode*) override;
+    void WalkNode(VariableNode*) override;
+    void WalkNode(LiteralNode*) override;
 };

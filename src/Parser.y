@@ -2,7 +2,7 @@
 %language "c++"
 %define api.value.type variant
 %define api.token.constructor
-%debug
+%define parse.trace
 
 %code requires {
     #include <string>
@@ -19,16 +19,18 @@
     #include "Driver.hh"
 %}
 
-%token T_If T_Equals T_Not_Equals T_Then T_Else T_Done T_End
+%token T_If T_Equals T_Not_Equals T_Then T_Else T_Done T_End T_Double_Equals T_Right_Paren T_Left_Paren
 %token T_Disp
 %token <char*> T_String
+%token <int> T_Int
+%token <float> T_Float
 
 %token END_OF_FILE 0
 
 %type <std::string> Displayable;
 %type <std::shared_ptr<AstNode>> command C_Disp if_stmt statement;
 %type <std::shared_ptr<InstructionList>> instruction_list else_part;
-%type <std::shared_ptr<BinaryExpNode>> exp;
+%type <std::shared_ptr<ExpNode>> exp primary;
 
 %%
 
@@ -57,6 +59,10 @@ if_stmt:
     T_If exp T_Then instruction_list else_part T_End
     {
         $$ = std::make_shared<FlowControl>($2, $4, $5);
+    }
+    | T_If exp T_Then instruction_list
+    {
+        $$ = std::make_shared<FlowControl>($2, $4, std::shared_ptr<InstructionList>(nullptr));
     };
 
 else_part:
@@ -70,8 +76,28 @@ else_part:
     };
 
 exp:
-    %empty
-    {};
+    primary T_Double_Equals primary
+    {
+        $$ = std::make_shared<BinaryExpNode>(Instructions::Equals, $1, $3);
+    } 
+    | T_Left_Paren exp T_Right_Paren
+    {
+        $$ = $2;
+    };
+
+primary:
+    T_Int
+    {
+        $$ = std::make_shared<LiteralNode>($1);
+    }
+    | T_Float
+    {
+        $$ = std::make_shared<LiteralNode>($1);
+    }
+    | exp
+    {
+        $$ = $1;
+    };
 
 command:
     C_Disp { $$ = $1; };
