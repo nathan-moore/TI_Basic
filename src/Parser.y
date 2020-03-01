@@ -20,8 +20,8 @@
 %}
 
 %token T_If T_Equals T_Not_Equals T_Then T_Else T_Done T_End T_Double_Equals T_Right_Paren T_Left_Paren
-%token T_Disp T_Plus T_Star
-%token <char*> T_String
+%token T_Disp T_Plus T_Star T_Newline T_Colon
+%token <char*> T_String T_Identifier
 %token <int> T_Int
 %token <float> T_Float
 
@@ -29,8 +29,8 @@
 
 %type <std::string> Displayable;
 %type <std::shared_ptr<AstNode>> command C_Disp if_stmt statement;
-%type <std::shared_ptr<InstructionList>> instruction_list else_part;
-%type <std::shared_ptr<ExpNode>> exp primary;
+%type <std::shared_ptr<InstructionList>> instruction_list;
+%type <std::shared_ptr<ExpNode>> exp primary if_then_part;
 
 %%
 
@@ -52,28 +52,24 @@ instruction_list:
     };
 
 statement:
-    command { $$ = std::move($1); }
+    command T_Newline { $$ = std::move($1); }
     | if_stmt { $$ = std::move($1); };
 
 if_stmt:
-    T_If exp T_Then instruction_list else_part T_End
+    if_then_part instruction_list T_Else instruction_list T_End
     {
-        $$ = std::make_shared<FlowControl>($2, $4, $5);
+        $$ = std::make_shared<FlowControl>($1, $2, $4);
     }
-    | T_If exp T_Then instruction_list
+    | if_then_part instruction_list T_End
     {
-        $$ = std::make_shared<FlowControl>($2, $4, std::shared_ptr<InstructionList>(nullptr));
+        $$ = std::make_shared<FlowControl>($1, $2, std::shared_ptr<InstructionList>(nullptr));
     };
 
-else_part:
-    T_Else instruction_list
+if_then_part:
+    T_If exp Ending T_Then T_Newline
     {
         $$ = $2;
     }
-    | %empty
-    {
-        $$ = std::shared_ptr<InstructionList>();
-    };
 
 exp:
     exp_prefix factor
@@ -85,9 +81,7 @@ exp_prefix:
     {
     }
     | %empty
-    {
-        $$ = nullptr;
-    };
+    {};
 
 factor:
     factor_prefix postfix_exp
@@ -119,7 +113,7 @@ mulop:
     {};
 
 id:
-    {};
+     T_Identifier {};
 
 command:
     C_Disp { $$ = $1; };
@@ -136,3 +130,6 @@ Displayable:
     {
         $$ = std::string($1);
     };
+
+Ending:
+    T_Newline | T_Colon

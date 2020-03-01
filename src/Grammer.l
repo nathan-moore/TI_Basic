@@ -24,6 +24,8 @@
  (?i:else) return parser::make_T_Else();
  "+" return parser::make_T_Plus();
  "*" return parser::make_T_Star();
-
- [ \n] ;
+ [a-zA-Z_][a-zA-Z0-9_]* return parser::make_T_Identifier(yytext);
+ \n return parser::make_T_Newline();
+ : return parser::make_T_Colon();
+ [ ] ;
 

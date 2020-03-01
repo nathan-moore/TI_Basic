@@ -12,6 +12,7 @@ _deps
 .vscode
 .vs
 
+*~
 build
 src/Parser.tab.cc
 include/Parser.tab.hh
