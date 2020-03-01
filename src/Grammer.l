@@ -21,5 +21,9 @@
  "(" return parser::make_T_Left_Paren();
  ")" return parser::make_T_Right_Paren();
  (?i:then) return parser::make_T_Then();
+ (?i:else) return parser::make_T_Else();
+ "+" return parser::make_T_Plus();
+ "*" return parser::make_T_Star();
+
  [ \n] ;
 

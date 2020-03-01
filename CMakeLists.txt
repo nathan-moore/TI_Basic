@@ -35,6 +35,7 @@ add_executable(Compiler_Tests
 
 add_dependencies(BASIC_Compiler Comp_library)
 add_dependencies(Compiler_Tests Comp_library)
+
 target_link_libraries(Comp_library ${FLEX_LIBRARIES})
 target_link_libraries(BASIC_Compiler Comp_library)
 target_link_libraries(Compiler_Tests Comp_library)

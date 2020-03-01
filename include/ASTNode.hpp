@@ -11,7 +11,6 @@
 enum class Instructions
 {
     Disp,
-    Nothing,
     Equals
 };
 

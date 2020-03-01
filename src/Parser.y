@@ -20,7 +20,7 @@
 %}
 
 %token T_If T_Equals T_Not_Equals T_Then T_Else T_Done T_End T_Double_Equals T_Right_Paren T_Left_Paren
-%token T_Disp
+%token T_Disp T_Plus T_Star
 %token <char*> T_String
 %token <int> T_Int
 %token <float> T_Float
@@ -76,28 +76,50 @@ else_part:
     };
 
 exp:
-    primary T_Double_Equals primary
+    exp_prefix factor
     {
-        $$ = std::make_shared<BinaryExpNode>(Instructions::Equals, $1, $3);
-    } 
-    | T_Left_Paren exp T_Right_Paren
-    {
-        $$ = $2;
     };
 
-primary:
-    T_Int
+exp_prefix:
+    exp_prefix factor addop
     {
-        $$ = std::make_shared<LiteralNode>($1);
     }
-    | T_Float
+    | %empty
     {
-        $$ = std::make_shared<LiteralNode>($1);
-    }
-    | exp
-    {
-        $$ = $1;
+        $$ = nullptr;
     };
+
+factor:
+    factor_prefix postfix_exp
+    {
+    };
+
+factor_prefix:
+    factor_prefix postfix_exp mulop
+    {}
+    | %empty 
+    {};
+
+postfix_exp:
+    primary
+    {};
+
+primary:
+    T_Left_Paren exp T_Right_Paren
+    {}
+    | id
+    {};
+
+addop:
+    T_Plus
+    {};
+
+mulop:
+    T_Star
+    {};
+
+id:
+    {};
 
 command:
     C_Disp { $$ = $1; };
@@ -107,6 +129,7 @@ C_Disp:
     {
         $$ = std::make_shared<InstructionNode>(Instructions::Disp, $2);
     };
+
 
 Displayable:
     T_String

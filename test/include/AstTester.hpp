@@ -4,20 +4,27 @@
 #include <initializer_list>
 #include <variant>
 #include <string>
+#include <optional>
 
 enum class Node{
     InstructionNode,
     BinaryExpNode,
-    FlowControl
+    FlowControl,
+    Literal,
+    VariableNode
 };
+
+//using optionalData = std::optional<std::variant<Instructions, std::string>>;
+using optionalData = std::tuple<std::optional<Instructions>, std::optional<std::string>>;
 
 class AstTestWalker : public ASTWalker {
 private:
-    std::vector<std::pair<Node, std::variant<Instructions, std::string>>> toWalk;
+    std::vector<std::pair<Node, optionalData>> toWalk;
     int index;
+    optionalData CheckNode(Node);
 public:
     AstTestWalker(
-        std::initializer_list<std::pair<Node, std::variant<Instructions, std::string>>>);
+        std::initializer_list<std::pair<Node, optionalData>>);
 
     void RunTest(std::string input);
 
