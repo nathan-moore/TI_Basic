@@ -25,10 +25,12 @@ TEST_CASE("PARSE_IF") {
 
     walker.RunTest(std::string("If (1 == 1)\n") +
         "THEN\n"
-        "Disp \"Good\n");
+        "Disp \"Good\n" +
+        "End");
 
     walker.RunTest(std::string("If (1 == 1): Then") +
-        "Disp \"Good\n");
+        "Disp \"Good\n" +
+        "End");
 
     walker.RunTest(std::string("If (1 == 1): Then") +
         "Disp \"Good" +

@@ -1,7 +1,7 @@
 #ifndef DRIVER_HH
 #define DRIVER_HH
 
-#include "Parser.tab.hh"
+#include "Grammer.tab.hh"
 #include "stdio.h"
 
 class driver

@@ -1,4 +1,3 @@
-#include "Parser.tab.hh"
 #include "Driver.hh"
 
 #include <cstdlib>
@@ -11,7 +10,7 @@ namespace yy{
 void parser::error(const std::string& str)
 {
     std::cout << "Failure at " << str << std::endl;
-    exit(1);
+    throw std::runtime_error("Failure at " + str + "\n");
 }
 
 }
@@ -25,7 +24,7 @@ int driver::parse(FILE* f)
 {
     yyin = f;
     yy::parser parse(*this);
-    //parse.set_debug_level(1);
+    parse.set_debug_level(1);
     result = parse();
 
     fclose(f);

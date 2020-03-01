@@ -13,11 +13,11 @@ add_compile_options(-Wall -Wextra -Werror -g)
 find_package(FLEX)
 find_package(BISON)
 
-BISON_TARGET(MyParser src/Parser.y ${CMAKE_CURRENT_BINARY_DIR}/Parser.tab.cc
-             DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/Parser.tab.hh
+BISON_TARGET(MyParser src/Grammer.y ${CMAKE_CURRENT_BINARY_DIR}/Grammer.tab.cc
+             DEFINES_FILE ${CMAKE_CURRENT_BINARY_DIR}/Grammer.tab.hh
              VERBOSE)
 
-FLEX_TARGET(MyScanner src/Grammer.l ${CMAKE_CURRENT_BINARY_DIR}/lex.yy.cc)
+FLEX_TARGET(MyScanner src/Lexer.l ${CMAKE_CURRENT_BINARY_DIR}/lex.yy.cc)
 ADD_FLEX_BISON_DEPENDENCY(MyScanner MyParser)
 
 add_library(Comp_library

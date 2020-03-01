@@ -15,7 +15,7 @@
 
 %{
     #include "ASTNode.hpp"
-    #include "Parser.tab.hh"
+    #include "Grammer.tab.hh"
     #include "Driver.hh"
 %}
 
@@ -72,9 +72,17 @@ if_then_part:
     }
 
 exp:
-    exp_prefix factor
+    base_exp
     {
-    };
+    }
+    //This forbids 1 == 1 == 1 == 1 You could argue that it should be legal, but
+    //t's both ugly and easier to forbid
+    | base_exp T_Double_Equals base_exp
+    {};
+
+base_exp:
+    exp_prefix factor
+    {};
 
 exp_prefix:
     exp_prefix factor addop
@@ -102,6 +110,10 @@ primary:
     T_Left_Paren exp T_Right_Paren
     {}
     | id
+    {}
+    | T_Int
+    {}
+    | T_Float
     {};
 
 addop:
