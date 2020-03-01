@@ -11,7 +11,10 @@
 enum class Instructions
 {
     Disp,
-    Equals
+    Equals,
+    Nothing,
+    Add,
+    Multiply
 };
 
 class AstNode
@@ -27,9 +30,9 @@ class ExpNode : public AstNode
 class VariableNode : public ExpNode
 {
     //TODO: Symbol table?
+    void InOrderWalk(ASTWalker* walker) override;
 };
 
-//TODO: shouldn't inherit from ExpNode?
 class LiteralNode : public ExpNode
 {
 public:
@@ -67,11 +70,11 @@ public:
 class BinaryExpNode : public ExpNode
 {
 public:
-    const std::shared_ptr<AstNode> leftNode;
-    const std::shared_ptr<AstNode> rightNode;
+    const std::shared_ptr<ExpNode> leftNode;
+    const std::shared_ptr<ExpNode> rightNode;
     const Instructions token;
 
-    BinaryExpNode(Instructions, std::shared_ptr<AstNode>, std::shared_ptr<AstNode>);
+    BinaryExpNode(Instructions, std::shared_ptr<ExpNode>, std::shared_ptr<ExpNode>);
     void InOrderWalk(ASTWalker* walker) override;
 };
 
@@ -87,4 +90,30 @@ public:
     //Third Optional Else branch
     FlowControl(std::shared_ptr<ExpNode>, std::shared_ptr<InstructionList>, std::shared_ptr<InstructionList>);
     void InOrderWalk(ASTWalker* walker) override;
+};
+
+class BinaryExpNodeBuilder
+{
+    std::shared_ptr<ExpNode> left;
+    Instructions token;
+
+public:
+    BinaryExpNodeBuilder()
+        : left(nullptr),
+        token(Instructions::Nothing)
+    {}
+
+    BinaryExpNodeBuilder(Instructions inst, std::shared_ptr<ExpNode> node)
+        : left(node),
+        token(inst) {}
+
+    std::shared_ptr<BinaryExpNode> Build(std::shared_ptr<ExpNode> node)
+    {
+        return std::make_shared<BinaryExpNode>(token, left, node);
+    }
+
+    bool IsDefault()
+    {
+        return left == nullptr;
+    }
 };

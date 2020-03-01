@@ -26,8 +26,8 @@ void InstructionList::push_back(std::shared_ptr<AstNode> node)
 }
 
 BinaryExpNode::BinaryExpNode(Instructions i, 
-    std::shared_ptr<AstNode> left,
-    std::shared_ptr<AstNode> right)
+    std::shared_ptr<ExpNode> left,
+    std::shared_ptr<ExpNode> right)
     : leftNode(left),
     rightNode(right),
     token(i)
@@ -60,6 +60,11 @@ void FlowControl::InOrderWalk(ASTWalker* walker)
 }
 
 void LiteralNode::InOrderWalk(ASTWalker* walker)
+{
+    walker->WalkNode(this);
+}
+
+void VariableNode::InOrderWalk(ASTWalker* walker)
 {
     walker->WalkNode(this);
 }

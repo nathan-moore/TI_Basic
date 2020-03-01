@@ -7,7 +7,7 @@
     using namespace yy;
 %}
 
-%option noyywrap nounput noinput batch debug
+%option noyywrap nounput noinput batch
 
 
 %%

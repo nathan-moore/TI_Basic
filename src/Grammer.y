@@ -30,7 +30,9 @@
 %type <std::string> Displayable;
 %type <std::shared_ptr<AstNode>> command C_Disp if_stmt statement;
 %type <std::shared_ptr<InstructionList>> instruction_list;
-%type <std::shared_ptr<ExpNode>> exp primary if_then_part;
+%type <std::shared_ptr<ExpNode>> exp primary if_then_part base_exp factor postfix_exp id;
+%type <BinaryExpNodeBuilder> exp_prefix factor_prefix;
+%type <Instructions> mulop addop
 
 %%
 
@@ -70,62 +72,110 @@ if_then_part:
     {
         $$ = $2;
     }
+    | T_If exp T_Newline
+    {
+        $$ = $2;
+    };
 
 exp:
     base_exp
     {
+        $$ = $1;
     }
     //This forbids 1 == 1 == 1 == 1 You could argue that it should be legal, but
     //t's both ugly and easier to forbid
+    // 1 == (1 == 1) is legal though
     | base_exp T_Double_Equals base_exp
-    {};
+    {
+        $$ = std::make_shared<BinaryExpNode>(Instructions::Equals, $1, $3);
+    };
 
 base_exp:
     exp_prefix factor
-    {};
+    {
+        if ($1.IsDefault())
+            $$ = $2;
+        else 
+            $$ = $1.Build($2);
+    };
 
 exp_prefix:
     exp_prefix factor addop
     {
+        if ($1.IsDefault())
+            $$ = BinaryExpNodeBuilder($3, $2);
+        else
+            $$ = BinaryExpNodeBuilder($3, $1.Build($2));
     }
     | %empty
-    {};
+    {
+        $$ = BinaryExpNodeBuilder();
+    };
 
 factor:
     factor_prefix postfix_exp
     {
+        if ($1.IsDefault())
+            $$ = $2;
+        else
+            $1.Build($2);
     };
 
 factor_prefix:
     factor_prefix postfix_exp mulop
-    {}
+    {
+        if ($1.IsDefault())
+             $$ = BinaryExpNodeBuilder($3, $2);
+        else
+             $$ = BinaryExpNodeBuilder($3, $1.Build($2));
+    }
     | %empty 
-    {};
+    {
+         $$ = BinaryExpNodeBuilder();
+    };
 
 postfix_exp:
     primary
-    {};
+    {
+        $$ = $1;
+    };
 
 primary:
     T_Left_Paren exp T_Right_Paren
-    {}
+    {
+        $$ = $2;
+    }
     | id
-    {}
+    {
+        $$ = $1;
+    }
     | T_Int
-    {}
+    {
+        $$ = std::make_shared<LiteralNode>($1);
+    }
     | T_Float
-    {};
+    {
+        $$ = std::make_shared<LiteralNode>($1);
+    };
 
 addop:
     T_Plus
-    {};
+    {
+        $$ = Instructions::Add;
+    };
 
 mulop:
     T_Star
-    {};
+    {
+        $$ = Instructions::Multiply;
+    };
 
 id:
-     T_Identifier {};
+     T_Identifier 
+     {
+        //TODO
+        $$ = std::make_shared<VariableNode>();
+     };
 
 command:
     C_Disp { $$ = $1; };

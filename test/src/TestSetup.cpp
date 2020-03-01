@@ -43,7 +43,7 @@ void AstTestWalker::WalkNode(InstructionNode* node)
 
 void AstTestWalker::WalkNode(FlowControl*)
 {
-    CheckNode(Node::InstructionNode);
+    CheckNode(Node::FlowControl);
 }
 
 void AstTestWalker::WalkNode(BinaryExpNode*)

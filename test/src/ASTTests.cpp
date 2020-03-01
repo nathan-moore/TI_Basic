@@ -19,20 +19,20 @@ TEST_CASE("PARSE_IF") {
                           {Node::Literal, {}},
                           {Node::InstructionNode, {Instructions::Disp, "Good"}} };
 
-    //TODO:
-    //walker.RunTest(std::string("If 1 == 1\n") +
-    //    "Disp \"Good\"\n");
+    walker.RunTest(std::string("If 1 == 1\n") +
+        "Disp \"Good\"\n" + 
+        "End");
 
     walker.RunTest(std::string("If (1 == 1)\n") +
         "THEN\n"
         "Disp \"Good\n" +
         "End");
 
-    walker.RunTest(std::string("If (1 == 1): Then") +
+    walker.RunTest(std::string("If (1 == 1): Then\n") +
         "Disp \"Good\n" +
         "End");
 
-    walker.RunTest(std::string("If (1 == 1): Then") +
-        "Disp \"Good" +
+    walker.RunTest(std::string("If (1 == 1): Then\n") +
+        "Disp \"Good\n" +
         "End");
 }

@@ -24,7 +24,7 @@ int driver::parse(FILE* f)
 {
     yyin = f;
     yy::parser parse(*this);
-    parse.set_debug_level(1);
+    //parse.set_debug_level(1);
     result = parse();
 
     fclose(f);
