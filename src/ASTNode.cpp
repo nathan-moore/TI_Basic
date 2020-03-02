@@ -13,6 +13,11 @@ void InstructionNode::InOrderWalk(ASTWalker* walker)
     walker->WalkNode(this);
 }
 
+void InstructionNode::PostOrderWalk(ASTWalker* walker)
+{
+    walker->WalkNode(this);
+}
+
 InstructionList::InstructionList() {}
 
 void InstructionList::InOrderWalk(ASTWalker* walker)
@@ -20,6 +25,14 @@ void InstructionList::InOrderWalk(ASTWalker* walker)
     for (std::shared_ptr<AstNode> node : list)
     {
         node->InOrderWalk(walker);
+    }
+}
+
+void InstructionList::PostOrderWalk(ASTWalker* walker)
+{
+    for (std::shared_ptr<AstNode> node : list)
+    {
+        node->PostOrderWalk(walker);
     }
 }
 
@@ -41,6 +54,14 @@ void BinaryExpNode::InOrderWalk(ASTWalker* walker)
     leftNode->InOrderWalk(walker);
     walker->WalkNode(this);
     rightNode->InOrderWalk(walker);
+}
+
+void BinaryExpNode::PostOrderWalk(ASTWalker* walker)
+{
+    leftNode->PostOrderWalk(walker);
+    rightNode->PostOrderWalk(walker);
+
+    walker->WalkNode(this);
 }
 
 std::shared_ptr<ExpNode>& FlowControl::getCond()
@@ -103,12 +124,35 @@ void FlowControl::InOrderWalk(ASTWalker* walker)
     }
 }
 
+void FlowControl::PostOrderWalk(ASTWalker* walker)
+{
+    condition->InOrderWalk(walker);
+    getIfList()->InOrderWalk(walker);
+    std::unique_ptr<InstructionList>& elses = getElseList();
+    if (elses != nullptr)
+    {
+        elses->InOrderWalk(walker);
+    }
+
+    walker->WalkNode(this);
+}
+
 void LiteralNode::InOrderWalk(ASTWalker* walker)
 {
     walker->WalkNode(this);
 }
 
+void LiteralNode::PostOrderWalk(ASTWalker* walker)
+{
+    walker->WalkNode(this);
+}
+
 void VariableNode::InOrderWalk(ASTWalker* walker)
+{
+    walker->WalkNode(this);
+}
+
+void VariableNode::PostOrderWalk(ASTWalker* walker)
 {
     walker->WalkNode(this);
 }
@@ -119,6 +163,11 @@ void LblNode::InOrderWalk(ASTWalker* walker)
 }
 
 void GotoNode::InOrderWalk(ASTWalker* walker)
+{
+    walker->WalkNode(this);
+}
+
+void GotoNode::PostOrderWalk(ASTWalker* walker)
 {
     walker->WalkNode(this);
 }

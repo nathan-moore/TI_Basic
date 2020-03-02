@@ -17,6 +17,7 @@ void BasicBlockFormer::WalkNode(LblNode*)
 
 void BasicBlockFormer::WalkNode(GotoNode*)
 {
+	//End of BB
 }
 
 void BasicBlockFormer::WalkNode(FlowControl* block)

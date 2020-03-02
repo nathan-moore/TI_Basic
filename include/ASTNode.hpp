@@ -26,6 +26,7 @@ class AstNode
 public:
     virtual ~AstNode() {}
     virtual void InOrderWalk(ASTWalker* walker) = 0;
+    virtual void PostOrderWalk(ASTWalker* walker) = 0;
 };
 
 class ExpNode : public AstNode
@@ -35,6 +36,7 @@ class VariableNode : public ExpNode
 {
     //TODO: Symbol table?
     void InOrderWalk(ASTWalker* walker) override;
+    void PostOrderWalk(ASTWalker* walker) override;
 };
 
 class LiteralNode : public ExpNode
@@ -46,6 +48,7 @@ public:
 
     LiteralNode(float f) : literal(f) {}
     void InOrderWalk(ASTWalker* walker) override;
+    void PostOrderWalk(ASTWalker* walker) override;
 };
 
 //TODO: change?
@@ -57,6 +60,7 @@ public:
 
     InstructionNode(Instructions, std::string);
     void InOrderWalk(ASTWalker* walker) override;
+    void PostOrderWalk(ASTWalker* walker) override;
 };
 
 class InstructionList
@@ -68,6 +72,7 @@ public:
     void push_back(std::shared_ptr<AstNode>);
 
     void InOrderWalk(ASTWalker*);
+    void PostOrderWalk(ASTWalker* walker);
 };
 
 class BinaryExpNode : public ExpNode
@@ -79,6 +84,7 @@ public:
 
     BinaryExpNode(Instructions, std::shared_ptr<ExpNode>, std::shared_ptr<ExpNode>);
     void InOrderWalk(ASTWalker* walker) override;
+    void PostOrderWalk(ASTWalker* walker) override;
 };
 
 class BasicBlock;
@@ -111,6 +117,7 @@ public:
     FlowControl(std::shared_ptr<ExpNode> n1, std::unique_ptr<InstructionList>&& n2)
         :FlowControl(n1, std::move(n2), std::unique_ptr<InstructionList>{}) {}
     void InOrderWalk(ASTWalker* walker) override;
+    void PostOrderWalk(ASTWalker* walker) override;
 };
 
 class LblNode : public AstNode
@@ -129,6 +136,7 @@ class GotoNode : public AstNode
 public:
     // Inherited via AstNode
     virtual void InOrderWalk(ASTWalker* walker) override;
+    virtual void PostOrderWalk(ASTWalker* walker) override;
 };
 
 class BinaryExpNodeBuilder
