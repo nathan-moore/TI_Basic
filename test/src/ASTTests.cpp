@@ -19,20 +19,29 @@ TEST_CASE("PARSE_IF") {
                           {Node::Literal, {}},
                           {Node::InstructionNode, {Instructions::Disp, "Good"}} };
 
-    walker.RunTest(std::string("If 1 == 1\n") +
-        "Disp \"Good\"\n" + 
-        "End");
+    walker.RunTest(R"(If 1 = 1
+        Disp "Good"
+        End)");
 
-    walker.RunTest(std::string("If (1 == 1)\n") +
-        "THEN\n"
-        "Disp \"Good\n" +
-        "End");
+    walker.RunTest(R"(If (1 = 1)
+        THEN
+        Disp "Good
+        End)");
 
-    walker.RunTest(std::string("If (1 == 1): Then\n") +
-        "Disp \"Good\n" +
-        "End");
+    walker.RunTest(R"(If (1 = 1): Then
+        Disp "Good
+        End)");
 
-    walker.RunTest(std::string("If (1 == 1): Then\n") +
-        "Disp \"Good\n" +
-        "End");
+    walker.RunTest(R"(If (1 = 1): Then
+        Disp "Good
+        End)");
+}
+
+TEST_CASE("Assign") {
+    AstTestWalker walker{ {Node::Literal, {}},
+                          {Node::BinaryExpNode, {Instructions::Equals, {}}},
+                          {Node::Literal, {}},
+                          {Node::BinaryExpNode, {Instructions::Assign, {}}},
+                          {Node::VariableNode, {}} };
+    walker.RunTest(R"((1 = 1) -> A)");
 }

@@ -60,3 +60,13 @@ void AstTestWalker::WalkNode(LiteralNode*)
 {
     CheckNode(Node::Literal);
 }
+
+void AstTestWalker::WalkNode(LblNode*)
+{
+    CheckNode(Node::LblNode);
+}
+
+void AstTestWalker::WalkNode(GotoNode*)
+{
+    CheckNode(Node::GotoNode);
+}

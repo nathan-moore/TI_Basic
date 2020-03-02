@@ -24,7 +24,8 @@ add_library(Comp_library
     ${BISON_MyParser_OUTPUTS}
     ${FLEX_MyScanner_OUTPUTS}
     src/ASTNode.cpp
-    src/ParsingHandler.cpp)
+    src/ParsingHandler.cpp
+    src/BasicBlockFormer.cpp)
 
 add_executable(BASIC_Compiler
     src/test.cpp)

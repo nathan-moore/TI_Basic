@@ -5,6 +5,8 @@ class FlowControl;
 class BinaryExpNode;
 class VariableNode;
 class LiteralNode;
+class LblNode;
+class GotoNode;
 
 class ASTWalker {
 public:
@@ -13,4 +15,6 @@ public:
     virtual void WalkNode(BinaryExpNode*) = 0;
     virtual void WalkNode(VariableNode*) = 0;
     virtual void WalkNode(LiteralNode*) = 0;
+    virtual void WalkNode(LblNode*) = 0;
+    virtual void WalkNode(GotoNode*) = 0;
 };

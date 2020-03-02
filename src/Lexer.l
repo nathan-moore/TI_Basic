@@ -12,7 +12,8 @@
 
 %%
 
-"==" return parser::make_T_Double_Equals();
+"=" return parser::make_T_Compare_Equals();
+"->" return parser::make_T_Assign();
 "Disp " return parser::make_T_Disp();
 <<EOF>> { drv.noop(); return parser::make_END_OF_FILE(); }
 "If" return parser::make_T_If();

@@ -11,7 +11,9 @@ enum class Node{
     BinaryExpNode,
     FlowControl,
     Literal,
-    VariableNode
+    VariableNode,
+    GotoNode,
+    LblNode
 };
 
 //using optionalData = std::optional<std::variant<Instructions, std::string>>;
@@ -28,6 +30,9 @@ public:
 
     void RunTest(std::string input);
 
+    // Inherited via ASTWalker
+    void WalkNode(LblNode*) override;
+    void WalkNode(GotoNode*) override;
     void WalkNode(InstructionNode*) override;
     void WalkNode(FlowControl*) override;
     void WalkNode(BinaryExpNode*) override;

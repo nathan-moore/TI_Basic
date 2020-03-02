@@ -10,11 +10,15 @@
 
 enum class Instructions
 {
+    //Statement Instructions
     Disp,
+
+    //Binary Instructions
     Equals,
     Nothing,
     Add,
-    Multiply
+    Multiply,
+    Assign
 };
 
 class AstNode
@@ -48,11 +52,10 @@ public:
 class InstructionNode: public AstNode
 {
 public:
-    const std::variant<std::string, std::shared_ptr<VariableNode>> items;
+    const std::variant<std::string> items;
     const Instructions instruction;
 
     InstructionNode(Instructions, std::string);
-
     void InOrderWalk(ASTWalker* walker) override;
 };
 
@@ -78,18 +81,54 @@ public:
     void InOrderWalk(ASTWalker* walker) override;
 };
 
+class BasicBlock;
+
 class FlowControl : public AstNode
 {
+    std::shared_ptr<ExpNode> condition;
+    std::unique_ptr<InstructionList> ifList;
+    std::unique_ptr<InstructionList> elseList;
+
+    bool BBFormed = false;
+
+    std::shared_ptr<BasicBlock> IfBB;
+    std::shared_ptr<BasicBlock> ElseBB;
+
 public:
-    const std::shared_ptr<ExpNode> condition;
-    const std::shared_ptr<InstructionList> ifList;
-    const std::shared_ptr<InstructionList> elseList;
+    std::shared_ptr<ExpNode>& getCond();
+    std::unique_ptr<InstructionList>& getIfList();
+    std::unique_ptr<InstructionList>& getElseList();
+
+    void MakeBasicBlocks();
+
+    std::shared_ptr<BasicBlock> getIfBB();
+    std::shared_ptr<BasicBlock> getElseBB();
 
     //First Condition
     //Second First branch
     //Third Optional Else branch
-    FlowControl(std::shared_ptr<ExpNode>, std::shared_ptr<InstructionList>, std::shared_ptr<InstructionList>);
+    FlowControl(std::shared_ptr<ExpNode>, std::unique_ptr<InstructionList>, std::unique_ptr<InstructionList>);
+    FlowControl(std::shared_ptr<ExpNode> n1, std::unique_ptr<InstructionList>&& n2)
+        :FlowControl(n1, std::move(n2), std::unique_ptr<InstructionList>{}) {}
     void InOrderWalk(ASTWalker* walker) override;
+};
+
+class LblNode : public AstNode
+{
+    std::string name;
+
+public:
+    // Inherited via AstNode
+    virtual void InOrderWalk(ASTWalker* walker) override;
+};
+
+class GotoNode : public AstNode
+{
+    std::variant<std::string, std::shared_ptr<BasicBlock>> destination;
+
+public:
+    // Inherited via AstNode
+    virtual void InOrderWalk(ASTWalker* walker) override;
 };
 
 class BinaryExpNodeBuilder
