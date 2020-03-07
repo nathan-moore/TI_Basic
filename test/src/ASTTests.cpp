@@ -14,9 +14,9 @@ TEST_CASE( "PARSE_DISP" ) {
 
 TEST_CASE("PARSE_IF") {
     AstTestWalker walker{ {Node::FlowControl, {}},
-                          {Node::Literal, {}},
+                          {Node::LiteralNode, {}},
                           {Node::BinaryExpNode, {}},
-                          {Node::Literal, {}},
+                          {Node::LiteralNode, {}},
                           {Node::InstructionNode, {Instructions::Disp, "Good"}} };
 
     walker.RunTest(R"(If 1 = 1
@@ -38,9 +38,9 @@ TEST_CASE("PARSE_IF") {
 }
 
 TEST_CASE("Assign") {
-    AstTestWalker walker{ {Node::Literal, {}},
+    AstTestWalker walker{ {Node::LiteralNode, {}},
                           {Node::BinaryExpNode, {Instructions::Equals, {}}},
-                          {Node::Literal, {}},
+                          {Node::LiteralNode, {}},
                           {Node::BinaryExpNode, {Instructions::Assign, {}}},
                           {Node::VariableNode, {}} };
     walker.RunTest(R"((1 = 1) -> A)");

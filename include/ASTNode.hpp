@@ -21,12 +21,25 @@ enum class Instructions
     Assign
 };
 
+enum class Node
+{
+    VariableNode,
+    LiteralNode,
+    InstructionNode,
+    BinaryExpNode,
+    FlowControl,
+    LblNode,
+    GotoNode, 
+    BasicJump
+};
+
 class AstNode
 {
 public:
     virtual ~AstNode() {}
     virtual void InOrderWalk(ASTWalker* walker) = 0;
     virtual void PostOrderWalk(ASTWalker* walker) = 0;
+    virtual Node GetType() const = 0;
 };
 
 class ExpNode : public AstNode
@@ -37,6 +50,7 @@ class VariableNode : public ExpNode
     //TODO: Symbol table?
     void InOrderWalk(ASTWalker* walker) override;
     void PostOrderWalk(ASTWalker* walker) override;
+    Node GetType() const override { return Node::VariableNode; }
 };
 
 class LiteralNode : public ExpNode
@@ -49,6 +63,7 @@ public:
     LiteralNode(float f) : literal(f) {}
     void InOrderWalk(ASTWalker* walker) override;
     void PostOrderWalk(ASTWalker* walker) override;
+    Node GetType() const override { return Node::LiteralNode; }
 };
 
 //TODO: change?
@@ -61,10 +76,13 @@ public:
     InstructionNode(Instructions, std::string);
     void InOrderWalk(ASTWalker* walker) override;
     void PostOrderWalk(ASTWalker* walker) override;
+    Node GetType() const override { return Node::InstructionNode; }
 };
 
 class InstructionList
 {
+    using nodes_t = std::vector<std::shared_ptr<AstNode>>;
+
     std::vector<std::shared_ptr<AstNode>> list;
 public:
     InstructionList();
@@ -73,6 +91,11 @@ public:
 
     void InOrderWalk(ASTWalker*);
     void PostOrderWalk(ASTWalker* walker);
+
+    using iterator = nodes_t::iterator;
+
+    iterator begin() { return list.begin(); }
+    iterator end() { return list.end(); }
 };
 
 class BinaryExpNode : public ExpNode
@@ -85,6 +108,7 @@ public:
     BinaryExpNode(Instructions, std::shared_ptr<ExpNode>, std::shared_ptr<ExpNode>);
     void InOrderWalk(ASTWalker* walker) override;
     void PostOrderWalk(ASTWalker* walker) override;
+    Node GetType() const override { return Node::InstructionNode; }
 };
 
 class BasicBlock;
@@ -95,20 +119,10 @@ class FlowControl : public AstNode
     std::unique_ptr<InstructionList> ifList;
     std::unique_ptr<InstructionList> elseList;
 
-    bool BBFormed = false;
-
-    std::shared_ptr<BasicBlock> IfBB;
-    std::shared_ptr<BasicBlock> ElseBB;
-
 public:
     std::shared_ptr<ExpNode>& getCond();
     std::unique_ptr<InstructionList>& getIfList();
     std::unique_ptr<InstructionList>& getElseList();
-
-    void MakeBasicBlocks();
-
-    std::shared_ptr<BasicBlock> getIfBB();
-    std::shared_ptr<BasicBlock> getElseBB();
 
     //First Condition
     //Second First branch
@@ -118,6 +132,19 @@ public:
         :FlowControl(n1, std::move(n2), std::unique_ptr<InstructionList>{}) {}
     void InOrderWalk(ASTWalker* walker) override;
     void PostOrderWalk(ASTWalker* walker) override;
+    Node GetType() const override { return Node::FlowControl; }
+};
+
+class BasicJump : public AstNode
+{
+    std::shared_ptr<ExpNode> condition;
+    std::shared_ptr<GotoNode> ifJmp;
+    std::shared_ptr<GotoNode> elseJmp;
+public:
+    BasicJump(std::shared_ptr<ExpNode>, std::shared_ptr<GotoNode>, std::shared_ptr<GotoNode>);
+    void InOrderWalk(ASTWalker* walker) override;
+    void PostOrderWalk(ASTWalker* walker) override;
+    Node GetType() const override { return Node::BasicJump; }
 };
 
 class LblNode : public AstNode
@@ -127,6 +154,8 @@ class LblNode : public AstNode
 public:
     // Inherited via AstNode
     virtual void InOrderWalk(ASTWalker* walker) override;
+    Node GetType() const override { return Node::LblNode; }
+    const std::string& GetLbl() const { return name; }
 };
 
 class GotoNode : public AstNode
@@ -137,6 +166,7 @@ public:
     // Inherited via AstNode
     virtual void InOrderWalk(ASTWalker* walker) override;
     virtual void PostOrderWalk(ASTWalker* walker) override;
+    Node GetType() const override { return Node::GotoNode; }
 };
 
 class BinaryExpNodeBuilder

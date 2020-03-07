@@ -71,37 +71,12 @@ std::shared_ptr<ExpNode>& FlowControl::getCond()
 
 std::unique_ptr<InstructionList>& FlowControl::getIfList()
 {
-    if (BBFormed)
-        return ifList;
-    else
-        return IfBB->getInstructions();
+    return ifList;
 }
 
 std::unique_ptr<InstructionList>& FlowControl::getElseList()
 {
-    if (BBFormed)
-        return elseList;
-    else
-        return ElseBB->getInstructions();
-}
-
-void FlowControl::MakeBasicBlocks()
-{
-    IfBB = std::make_shared<BasicBlock>(std::move(ifList));
-    if (elseList != nullptr)
-        ElseBB = std::make_shared<BasicBlock>(std::move(elseList));
-}
-
-std::shared_ptr<BasicBlock> FlowControl::getIfBB()
-{
-    assert(BBFormed);
-    return IfBB;
-}
-
-std::shared_ptr<BasicBlock> FlowControl::getElseBB()
-{
-    assert(BBFormed);
-    return ElseBB;
+    return elseList;
 }
 
 FlowControl::FlowControl(std::shared_ptr<ExpNode> exp,

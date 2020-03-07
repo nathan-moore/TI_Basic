@@ -11,6 +11,8 @@ class BasicBlock {
 
 	std::unique_ptr<InstructionList> instructions;
 public:
+	BasicBlock() {}
+
 	BasicBlock(std::unique_ptr<InstructionList> instructions)
 		: instructions(std::move(instructions)) {}
 

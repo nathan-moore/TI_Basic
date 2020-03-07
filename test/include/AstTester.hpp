@@ -6,15 +6,6 @@
 #include <string>
 #include <optional>
 
-enum class Node{
-    InstructionNode,
-    BinaryExpNode,
-    FlowControl,
-    Literal,
-    VariableNode,
-    GotoNode,
-    LblNode
-};
 
 //using optionalData = std::optional<std::variant<Instructions, std::string>>;
 using optionalData = std::tuple<std::optional<Instructions>, std::optional<std::string>>;

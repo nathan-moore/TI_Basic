@@ -58,7 +58,7 @@ void AstTestWalker::WalkNode(VariableNode*)
 
 void AstTestWalker::WalkNode(LiteralNode*)
 {
-    CheckNode(Node::Literal);
+    CheckNode(Node::LiteralNode);
 }
 
 void AstTestWalker::WalkNode(LblNode*)

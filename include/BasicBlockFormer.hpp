@@ -2,19 +2,15 @@
 
 #include "ASTNode.hpp"
 #include "NodeVisitor.hpp"
+#include <unordered_map>
 
-class BasicBlockFormer : public ASTWalker {
+class BasicBlockFormer {
+	std::unordered_map<std::string, std::shared_ptr<BasicBlock>> lookup;
 public:
 	BasicBlockFormer();
 
 	std::shared_ptr<BasicBlock> ParseBlocks(std::unique_ptr<InstructionList>);
 
-	// Inherited via ASTWalker
-	virtual void WalkNode(FlowControl*) override;
-	virtual void WalkNode(BinaryExpNode*) override;
-	virtual void WalkNode(VariableNode*) override;
-	virtual void WalkNode(LiteralNode*) override;
-	virtual void WalkNode(InstructionNode*) override;
-	virtual void WalkNode(LblNode*) override;
-	virtual void WalkNode(GotoNode*) override;
+	std::shared_ptr<GotoNode> ParseBranchBlock(std::unique_ptr<InstructionList>);
+
 };
