@@ -8,6 +8,7 @@ BasicBlockFormer::BasicBlockFormer()
 {
 }
 
+//TODO: refactor?
 std::shared_ptr<BasicBlock> BasicBlockFormer::ParseBlocks(std::unique_ptr<InstructionList> list)
 {
 	std::shared_ptr<BasicBlock> first = std::make_shared<BasicBlock>();
@@ -50,6 +51,14 @@ std::shared_ptr<BasicBlock> BasicBlockFormer::ParseBlocks(std::unique_ptr<Instru
 			std::shared_ptr<BasicJump> jmp = std::make_shared<BasicJump>(cntrl->getCond(),
 				ParseBranchBlock(std::move(cntrl->getIfList())),
 				ParseBranchBlock(std::move(cntrl->getElseList())));
+
+			first->getInstructions()->push_back(jmp);
+
+			for (std::shared_ptr<BasicBlock>& n : last)
+			{
+				//TODO: add in basic blocks
+				assert(false);
+			}
 		}
 
 
