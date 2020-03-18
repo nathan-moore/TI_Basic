@@ -146,3 +146,15 @@ void GotoNode::PostOrderWalk(ASTWalker* walker)
 {
     walker->WalkNode(this);
 }
+
+void BasicJump::InOrderWalk(ASTWalker*)
+{
+    //TODO
+    assert(false);
+}
+
+void BasicJump::PostOrderWalk(ASTWalker*)
+{
+    //TODO
+    assert(false);
+}

@@ -1,7 +1,9 @@
 #include "Driver.hh"
+#include "BasicBlockFormer.hpp"
 
 #include <cstdlib>
 #include <iostream>
+#include <cassert>
 
 extern FILE* yyin;
 
@@ -31,10 +33,21 @@ int driver::parse(FILE* f)
     return result;
 }
 
+
+
 int driver::parseString(const std::string& str)
 {
     FILE* f = fmemopen((void*)str.c_str(), str.length(), "r");
     return parse(f);
+}
+
+void driver::Compile()
+{
+    assert(topNode != nullptr);
+
+    BasicBlockFormer former;
+    std::shared_ptr<BasicBlock> pointer = former.ParseBlocks(std::move(topNode));
+
 }
 
 int driver::parse(const std::string& fileName)

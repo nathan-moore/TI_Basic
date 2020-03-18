@@ -1,19 +1,24 @@
 #pragma once
 
 #include "PostOrderWalkerHelper.hpp"
+#include "BasicBlock.hpp"
+
+#include <memory>
 
 #include <llvm/IR/Module.h>
 #include <llvm/IR/LLVMContext.h>
 
-class GenData : public TemplatedASTWalker<LLVM::Value*>
+class IRGen : public TemplatedASTWalker<llvm::Value*>
 {
-	LLVMContext context;
-	Module module;
+	llvm::LLVMContext context;
+	llvm::Module module;
 
-	GenData()
+	IRGen()
 		: module("TI Basic Something", context)
 	{
 
 	}
+
+	void FormIR(std::shared_ptr<BasicBlock>);
 
 };

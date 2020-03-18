@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.6)
 
+set(CMAKE_CXX_COMPILER "/usr/local/bin/clang++")
+set(CMAKE_C_COMPILER "/usr/local/bin/clang")
+
 project(BASIC_Compiler)
 project(Compiler_Tests)
 project(Comp_library)
@@ -25,7 +28,8 @@ add_library(Comp_library
     ${FLEX_MyScanner_OUTPUTS}
     src/ASTNode.cpp
     src/ParsingHandler.cpp
-    src/BasicBlockFormer.cpp)
+    src/BasicBlockFormer.cpp
+    src/IRGen.cpp)
 
 add_executable(BASIC_Compiler
     src/test.cpp)
@@ -33,16 +37,14 @@ add_executable(BASIC_Compiler
 add_executable(Compiler_Tests
     test/src/main.cpp
     test/src/TestSetup.cpp
-    test/src/ASTTests.cpp)
+    test/src/ASTTests.cpp
+    test/src/BBTests.cpp)
 
 add_dependencies(BASIC_Compiler Comp_library)
 add_dependencies(Compiler_Tests Comp_library)
 
-target_link_libraries(Comp_library ${FLEX_LIBRARIES})
 target_link_libraries(BASIC_Compiler Comp_library)
 target_link_libraries(Compiler_Tests Comp_library)
 
 target_include_directories(Compiler_Tests PRIVATE test/include)
-set_property(TARGET BASIC_Compiler PROPERTY CXX_STANDARD 17)
-set_property(TARGET Compiler_Tests PROPERTY CXX_STANDARD 17)
-set_property(TARGET Comp_library PROPERTY CXX_STANDARD 17)
+target_compile_features(Comp_library PUBLIC cxx_std_17)

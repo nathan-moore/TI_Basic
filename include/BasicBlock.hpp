@@ -11,7 +11,9 @@ class BasicBlock {
 
 	std::unique_ptr<InstructionList> instructions;
 public:
-	BasicBlock() {}
+	BasicBlock() 
+		:instructions(std::make_unique<InstructionList>())
+	{}
 
 	BasicBlock(std::unique_ptr<InstructionList> instructions)
 		: instructions(std::move(instructions)) {}
@@ -19,6 +21,11 @@ public:
 	void AddPreBlock(std::shared_ptr<BasicBlock> block)
 	{
 		preBlocks.push_back(block);
+	}
+
+	void AddPostBlock(std::shared_ptr<BasicBlock> block)
+	{
+		postBlocks.push_back(block);
 	}
 
 	std::unique_ptr<InstructionList>& getInstructions()

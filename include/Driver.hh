@@ -10,12 +10,13 @@ private:
   int parse(FILE* f);
 public:
   int result;
-  std::shared_ptr<InstructionList> topNode;
+  std::unique_ptr<InstructionList> topNode;
   
   driver();
   int parse (const std::string& f);
   int parseString(const std::string& f);
   void noop() {}
+  void Compile();
 };
 
 # define YY_DECL \

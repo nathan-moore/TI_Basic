@@ -1,6 +1,7 @@
 #pragma once
 
 #include "NodeVisitor.hpp"
+#include "ASTNode.hpp"
 
 #include <optional>
 #include <stack>
@@ -18,15 +19,15 @@ public:
 	virtual T WalkNode(GotoNode*) = 0;
 };
 
-template<template<typename U> class T>
+template<template<typename U> class T, class U>
 class PostOrderWalkerHelper : ASTWalker {
 	std::stack<U> returnedArgs;
-	T walker;
+	T<U> walker;
 
-	PostOrderWalkerHelper(T walker) :
+	PostOrderWalkerHelper(T<U> walker) :
 		walker(walker)
 	{
-		static_assert(std::is_base_of<TemplatedASTWalker, T>::value, "T is not derived from transformation");
+		static_assert(std::is_base_of<TemplatedASTWalker<U>, T<U>>::value, "T is not derived from transformation");
 	}
 
 	// Inherited via ASTWalker
@@ -34,6 +35,7 @@ class PostOrderWalkerHelper : ASTWalker {
 	{
 		returnedArgs.push(walker.WalkNode(node));
 	}
+
 	virtual void WalkNode(FlowControl* node) override
 	{
 		U arg1 = returnedArgs.Top();
@@ -50,21 +52,21 @@ class PostOrderWalkerHelper : ASTWalker {
 	}
 	virtual void WalkNode(BinaryExpNode* node) override
 	{
-		returnedArgs.push(walker.WalkNode(node))
+		returnedArgs.push(walker.WalkNode(node));
 	}
 	virtual void WalkNode(VariableNode* node) override
 	{
 		returnedArgs.push(walker.WalkNode(node));
 	}
-	virtual void WalkNode(LiteralNode*) override
+	virtual void WalkNode(LiteralNode* node) override
 	{
 		returnedArgs.push(walker.WalkNode(node));
 	}
-	virtual void WalkNode(LblNode*) override
+	virtual void WalkNode(LblNode* node) override
 	{
 		returnedArgs.push(walker.WalkNode(node));
 	}
-	virtual void WalkNode(GotoNode*) override
+	virtual void WalkNode(GotoNode* node) override
 	{
 		returnedArgs.push(walker.WalkNode(node));
 	}

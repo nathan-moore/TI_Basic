@@ -17,8 +17,7 @@ void AstTestWalker::RunTest(std::string input)
     std::cout << "Parsing: " << input << std::endl;
     driver d;
     d.parseString(input);
-    std::shared_ptr<InstructionList> topNode = d.topNode;
-    topNode->InOrderWalk(this);
+    d.topNode->InOrderWalk(this);
 
     REQUIRE(index == toWalk.size());
 }

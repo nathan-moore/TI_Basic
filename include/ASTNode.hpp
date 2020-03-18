@@ -135,16 +135,40 @@ public:
     Node GetType() const override { return Node::FlowControl; }
 };
 
+class GotoNode : public AstNode
+{
+    std::variant<std::string, std::shared_ptr<BasicBlock>> destination;
+
+public:
+    GotoNode(std::shared_ptr<BasicBlock> block)
+        : destination(block) {}
+
+    // Inherited via AstNode
+    virtual void InOrderWalk(ASTWalker* walker) override;
+    virtual void PostOrderWalk(ASTWalker* walker) override;
+    Node GetType() const override { return Node::GotoNode; }
+
+    std::shared_ptr<BasicBlock> getBB() { return std::get<std::shared_ptr<BasicBlock>>(destination); }
+};
+
 class BasicJump : public AstNode
 {
     std::shared_ptr<ExpNode> condition;
     std::shared_ptr<GotoNode> ifJmp;
     std::shared_ptr<GotoNode> elseJmp;
 public:
-    BasicJump(std::shared_ptr<ExpNode>, std::shared_ptr<GotoNode>, std::shared_ptr<GotoNode>);
+    BasicJump(std::shared_ptr<ExpNode> cond, std::shared_ptr<GotoNode> ifNode, std::shared_ptr<GotoNode> elseNode)
+        :condition(cond),
+        ifJmp(ifNode),
+        elseJmp(elseNode) {}
+
     void InOrderWalk(ASTWalker* walker) override;
     void PostOrderWalk(ASTWalker* walker) override;
     Node GetType() const override { return Node::BasicJump; }
+
+    std::shared_ptr<ExpNode>& condReference() { return condition; }
+    std::shared_ptr<BasicBlock> getIfBB() { return ifJmp->getBB(); }
+    std::shared_ptr<BasicBlock> getElseBB() { return elseJmp->getBB(); }
 };
 
 class LblNode : public AstNode
@@ -156,17 +180,6 @@ public:
     virtual void InOrderWalk(ASTWalker* walker) override;
     Node GetType() const override { return Node::LblNode; }
     const std::string& GetLbl() const { return name; }
-};
-
-class GotoNode : public AstNode
-{
-    std::variant<std::string, std::shared_ptr<BasicBlock>> destination;
-
-public:
-    // Inherited via AstNode
-    virtual void InOrderWalk(ASTWalker* walker) override;
-    virtual void PostOrderWalk(ASTWalker* walker) override;
-    Node GetType() const override { return Node::GotoNode; }
 };
 
 class BinaryExpNodeBuilder
