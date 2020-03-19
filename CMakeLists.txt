@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.6)
 
-set(CMAKE_CXX_COMPILER "/usr/local/bin/clang++")
-set(CMAKE_C_COMPILER "/usr/local/bin/clang")
+set(CMAKE_CXX_COMPILER "clang++")
+set(CMAKE_C_COMPILER "clang")
 
 project(BASIC_Compiler)
 project(Compiler_Tests)
