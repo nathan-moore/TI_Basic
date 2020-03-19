@@ -9,9 +9,9 @@ jobs:
         cmake ..
         make
         cp Compiler_Tests artifacts
-    workingDirectory: cmake-build
-    displayName: Build
+      workingDirectory: cmake-build
+      displayName: Build
     - script: |
         ./Compiler_Tests
-    workingDirectory: cmake-build
-    displayName: "Run Tests"
+      workingDirectory: cmake-build
+      displayName: "Run Tests"
