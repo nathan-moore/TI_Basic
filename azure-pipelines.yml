@@ -1,6 +1,7 @@
 jobs:
 - job: BuildProduct
-  environment: TICI
+  container:
+    image: tidocker.azurecr.io
   steps:
     - checkout: self
     - bash: |
