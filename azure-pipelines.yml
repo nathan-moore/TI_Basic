@@ -1,0 +1,10 @@
+jobs:
+- job: BuildProduct
+  environment: TICI
+  steps:
+    - checkout: self
+    - bash: |
+      cmake 
+      make
+      cp Compiler_Tests artifacts
+    displayName: Build   
