@@ -8,7 +8,6 @@ stages:
   jobs:
   - job: BuildProduct
     container: build1
-      image: tidocker.azurecr.io/build1
     steps:
       - checkout: self
       - script: mkdir cmake-build
