@@ -1,6 +1,6 @@
 jobs:
 - job: BuildProduct
-  container:
+  container: build1
     image: tidocker.azurecr.io/build1
   steps:
     - checkout: self
