@@ -1,7 +1,7 @@
 jobs:
 - job: BuildProduct
   container:
-    image: tidocker.azurecr.io
+    image: tidocker.azurecr.io/build1
   steps:
     - checkout: self
     - script: mkdir cmake-build
