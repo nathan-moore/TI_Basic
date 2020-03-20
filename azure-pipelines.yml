@@ -1,7 +1,7 @@
 resources:
   containers:
     - container: build1
-      image: tidocker.azurecr.io/build1
+      image: DockerConnection/build1
 
 stages:
 - stage: CI
