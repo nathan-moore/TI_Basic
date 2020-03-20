@@ -6,6 +6,9 @@ resources:
 stages:
 - stage: CI
   jobs:
+  - job: login
+    steps:
+      - script: docker login tidocker.azurecr.io --username $(SP_APP_ID) --password $(SP_APP_PASSWORD)
   - job: BuildProduct
     container: build1
     steps:
