@@ -6,21 +6,21 @@ resources:
 stages:
 - stage: CI
   jobs:
-  - job: login
+  - job: BuildProduct
     steps:
       - script: docker login tidocker.azurecr.io --username $(SP_APP_ID) --password $(SP_APP_PASSWORD)
-  - job: BuildProduct
-    container: build1
-    steps:
       - checkout: self
+        target: build1
       - script: mkdir cmake-build
+        target: build1
       - script: |
           cmake ..
           make
           cp Compiler_Tests artifacts
         workingDirectory: cmake-build
         displayName: Build
+        target: build1
       - script: ./Compiler_Tests
         workingDirectory: cmake-build
         displayName: "Run Tests"
-
+        target: build1
