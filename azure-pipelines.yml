@@ -24,3 +24,4 @@ stages:
         workingDirectory: cmake-build
         displayName: "Run Tests"
         target: build1
+
