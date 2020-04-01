@@ -1,0 +1,23 @@
+resources:
+  containers:
+    - container: build1
+      image: nathanmoore/ci_build
+
+stages:
+- stage: CI
+  jobs:
+  - job: BuildProduct
+    container: build1
+    steps:
+      - checkout: self
+      - script: mkdir cmake-build
+      - script: |
+          cmake ..
+          make
+          cp Compiler_Tests artifacts
+        workingDirectory: cmake-build
+        displayName: Build
+      - script: ./Compiler_Tests
+        workingDirectory: cmake-build
+        displayName: "Run Tests"
+
