@@ -29,10 +29,14 @@ add_library(Comp_library
     src/ASTNode.cpp
     src/ParsingHandler.cpp
     src/BasicBlockFormer.cpp
-    src/IRGen.cpp)
+    src/IRGen.cpp
+    src/SymbolTable.cpp
+    src/SSAFormer.cpp)
+
+set(CMAKE_CXX_STANDARD 20)
 
 add_executable(BASIC_Compiler
-    src/test.cpp)
+    src/Compiler.cpp)
 
 add_executable(Compiler_Tests
     test/src/main.cpp

@@ -45,12 +45,27 @@ public:
 class ExpNode : public AstNode
 { };
 
+class Variable;
+class SSAVariable;
+
 class VariableNode : public ExpNode
 {
-    //TODO: Symbol table?
+    std::string name;
+    bool isAssignment;
+    Variable* var;
+    SSAVariable* ssaVariable;
+public:
+
+    VariableNode(std::string& str) : name(str), isAssignment(false), var(NULL)
+    { }
+
     void InOrderWalk(ASTWalker* walker) override;
     void PostOrderWalk(ASTWalker* walker) override;
     Node GetType() const override { return Node::VariableNode; }
+    void SetAssignment() { isAssignment = true; }
+    void SetVariable(Variable* variable) { var = variable; }
+    Variable* getVariable() { return var; }
+    void SetSSAVariable(SSAVariable* var) { ssaVariable = var; }
 };
 
 class LiteralNode : public ExpNode

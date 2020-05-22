@@ -3,14 +3,18 @@
 
 #include "Grammer.tab.hh"
 #include "stdio.h"
+#include "SymbolTable.hpp"
 
 class driver
 {
 private:
   int parse(FILE* f);
+  
 public:
   int result;
   std::unique_ptr<InstructionList> topNode;
+  std::shared_ptr<BasicBlock> bbs;
+  SymbolTable table;
   
   driver();
   int parse (const std::string& f);

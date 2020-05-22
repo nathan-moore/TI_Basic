@@ -30,7 +30,8 @@
 %type <std::string> Displayable;
 %type <std::shared_ptr<AstNode>> command C_Disp if_stmt statement assign_statement;
 %type <std::unique_ptr<InstructionList>> instruction_list;
-%type <std::shared_ptr<ExpNode>> exp primary if_then_part base_exp factor postfix_exp id;
+%type <std::shared_ptr<ExpNode>> exp primary if_then_part base_exp factor postfix_exp;
+%type <std::shared_ptr<VariableNode>> id;
 %type <BinaryExpNodeBuilder> exp_prefix factor_prefix;
 %type <Instructions> mulop addop
 
@@ -61,7 +62,9 @@ statement:
 assign_statement:
     exp T_Assign id
     {
-        $$ =  std::make_shared<BinaryExpNode>(Instructions::Assign, $1, $3);
+        auto assignmentNode = $3;
+        assignmentNode->SetAssignment();
+        $$ =  std::make_shared<BinaryExpNode>(Instructions::Assign, $1, assignmentNode);
     };
 
 if_stmt:
@@ -180,8 +183,11 @@ mulop:
 id:
      T_Identifier 
      {
-        //TODO
-        $$ = std::make_shared<VariableNode>();
+        std::string name($1);
+        auto varNode = std::make_shared<VariableNode>(name);
+        Variable* variable = drv.table.AddVariableUse(name, varNode);
+        varNode->SetVariable(variable);
+        $$ = varNode;
      };
 
 command:

@@ -9,8 +9,12 @@ class BasicBlockFormer {
 
 	std::shared_ptr<GotoNode> ParseBranchBlock(std::unique_ptr<InstructionList>);
 
+	std::vector<std::weak_ptr<BasicBlock>> bbs;
+
 public:
 	BasicBlockFormer();
 
 	std::shared_ptr<BasicBlock> ParseBlocks(std::unique_ptr<InstructionList>);
+
+	std::vector<std::weak_ptr<BasicBlock>> getBBList() { return bbs; }
 };

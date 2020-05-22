@@ -1,5 +1,6 @@
 #include "Driver.hh"
 #include "BasicBlockFormer.hpp"
+#include "SSAFormer.hpp"
 
 #include <cstdlib>
 #include <iostream>
@@ -34,7 +35,6 @@ int driver::parse(FILE* f)
 }
 
 
-
 int driver::parseString(const std::string& str)
 {
     FILE* f = fmemopen((void*)str.c_str(), str.length(), "r");
@@ -46,8 +46,10 @@ void driver::Compile()
     assert(topNode != nullptr);
 
     BasicBlockFormer former;
-    std::shared_ptr<BasicBlock> pointer = former.ParseBlocks(std::move(topNode));
+    bbs = former.ParseBlocks(std::move(topNode));
 
+    SSAFormer ssaFormer;
+    ssaFormer.FormSSABlocks(bbs);
 }
 
 int driver::parse(const std::string& fileName)
