@@ -13,7 +13,7 @@ private:
 public:
   int result;
   std::unique_ptr<InstructionList> topNode;
-  std::shared_ptr<BasicBlock> bbs;
+  BasicBlock* bbs;
   SymbolTable table;
   
   driver();

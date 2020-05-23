@@ -1,55 +1,51 @@
 #include "SSAFormer.hpp"
 #include "ASTNode.hpp"
+#include "variable.hpp"
 
 #include <cassert>
 
-void SSAFormer::FormState(std::vector<std::weak_ptr<BasicBlock>>& bbs)
+void SSAFormer::FormState(BasicBlock* bb)
 {
-	for (auto& weakbb : bbs)
+	stateMapping.insert({ bb, {} });
+	SSAState* state = &stateMapping[&*bb];
+
+	for (auto& inst : *bb->getInstructions())
 	{
-		auto bb = weakbb.lock();
-
-		stateMapping.insert({ &*bb, {} });
-		SSAState* state = &stateMapping[&*bb];
-
-		for (auto& inst : *bb->getInstructions())
-		{
-			inst->PostOrderWalk(state);
-		}
+		inst->PostOrderWalk(state);
 	}
 
-	for (auto& weakbb : bbs)
+	for (auto& pair : state->outVars)
 	{
-		auto bb = weakbb.lock();
-
-		std::set<SSAVariable*> possibleSSAs;
-
-		SSAState& state = stateMapping[&*bb];
-
-		for (auto& pair : state.inVars)
+		Variable* var = pair.first;
+		if (containingBBs.count(var) == 0)
 		{
-			if (pair.second.count == 0)
-			{
-				continue;
-			}
-
-			SSAVariable* var = FindDefinition(pair.first, bb);
-			*pair.second.var = *var;
+			containingBBs.insert({ var, {} });
 		}
+
+		containingBBs[var].insert(bb);
 	}
 }
 
-SSAVariable* SSAFormer::FindDefinition(Variable* var, std::shared_ptr<BasicBlock>& bb)
+void SSAFormer::FlowState(Variable*)
 {
-	return nullptr;
+
 }
 
 SSAFormer::SSAFormer()
 {
 }
 
-void SSAFormer::FormSSABlocks(std::shared_ptr<BasicBlock>&)
+void SSAFormer::FormSSABlocks(std::vector<BasicBlock*>& bbs)
 {
+	for (BasicBlock* bb : bbs)
+	{
+		FormState(bb);
+	}
+
+	for (auto& v : containingBBs)
+	{
+		FlowState(v.first);
+	}
 }
 
 void SSAState::WalkNode(BinaryExpNode* node)
@@ -66,7 +62,7 @@ void SSAState::WalkNode(BinaryExpNode* node)
 	assert(state.count > 0);
 	oldVars.push_back(state);
 
-	inVars[v] = InVarState::GetNewState(this, v, node);
+	inVars[v] = InVarState::GetNewState(v, node);
 	state = inVars[v];
 
 	varNode->SetSSAVariable(state.var);
@@ -87,7 +83,7 @@ void SSAState::WalkNode(VariableNode* var)
 
 	if (inVars.count(v) == 0)
 	{
-		inVars.insert({ v, InVarState::GetNewState(this, v, nullptr) });
+		inVars.insert({ v, InVarState::GetNewState(v, nullptr) });
 	}
 
 	InVarState& state = inVars[v];
@@ -96,6 +92,7 @@ void SSAState::WalkNode(VariableNode* var)
 }
 
 //We don't care about these
+//TODO: if I ever add function calls, it also needs be handled here
 void SSAState::WalkNode(InstructionNode*)
 {
 }
@@ -118,10 +115,11 @@ void SSAState::WalkNode(GotoNode*)
 
 //Back to things we care about...
 
-InVarState InVarState::GetNewState(SSAState*, Variable*, BinaryExpNode*)
+InVarState InVarState::GetNewState(Variable* v, BinaryExpNode* node)
 {
 	InVarState s;
-	assert(false);
+	SSAVariable* ssa = new SSAVariable(v, node, v->GetCount());
+	s.var = ssa;
 	return s;
 }
 

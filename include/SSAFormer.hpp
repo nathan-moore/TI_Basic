@@ -14,6 +14,12 @@ public:
 	uint32_t VN;
 	BinaryExpNode* set;
 	Variable* variable;
+
+	SSAVariable(Variable* v, BinaryExpNode* node, uint32_t version)
+		: VN(version), set(node), variable(v) {}
+
+	SSAVariable()
+		: VN(UINT32_MAX), set(nullptr), variable(nullptr) {}
 };
 
 class SSAState;
@@ -23,7 +29,7 @@ public:
 	SSAVariable* var;
 	int count;
 
-	static InVarState GetNewState(SSAState* state, Variable* v, BinaryExpNode* node);
+	static InVarState GetNewState(Variable* v, BinaryExpNode* node);
 
 	void AddUsage();
 };
@@ -50,11 +56,12 @@ public:
 class SSAFormer {
 private:
 	std::unordered_map<BasicBlock*, SSAState> stateMapping;
-	void FormState(std::vector<std::weak_ptr<BasicBlock>>& bbs);
-	SSAVariable* FindDefinition(Variable* var, std::shared_ptr<BasicBlock>& bb);
+	std::unordered_map<Variable*, std::set<BasicBlock*>> containingBBs;
+	void FlowState(Variable* v);
+	void FormState(BasicBlock* bb);
 public:
 	SSAFormer();
-	void FormSSABlocks(std::shared_ptr<BasicBlock>& bblocks);
+	void FormSSABlocks(std::vector<BasicBlock*>& bbs);
 };
 
 #endif // !SSAFormer__

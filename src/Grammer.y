@@ -28,7 +28,7 @@
 %token END_OF_FILE 0
 
 %type <std::string> Displayable;
-%type <std::shared_ptr<AstNode>> command C_Disp if_stmt statement assign_statement;
+%type <std::shared_ptr<AstNode>> command C_Disp if_stmt statement assign_statement whitespace_ignorant_statement
 %type <std::unique_ptr<InstructionList>> instruction_list;
 %type <std::shared_ptr<ExpNode>> exp primary if_then_part base_exp factor postfix_exp;
 %type <std::shared_ptr<VariableNode>> id;
@@ -55,9 +55,18 @@ instruction_list:
     };
 
 statement:
-    command T_Newline { $$ = std::move($1); }
+    whitespace_ignorant_statement T_Newline
+    | whitespace_ignorant_statement END_OF_FILE
+    {
+        $$ = std::move($1);
+    }
     | if_stmt { $$ = std::move($1); }
-    | assign_statement {$$ = std::move($1);}
+
+whitespace_ignorant_statement:
+    command
+    { $$ = std::move($1); }
+    | assign_statement
+    { $$ = std::move($1); }
 
 assign_statement:
     exp T_Assign id
@@ -68,9 +77,9 @@ assign_statement:
     };
 
 if_stmt:
-    if_then_part instruction_list T_Else instruction_list T_End
+    if_then_part instruction_list T_Else T_Newline instruction_list T_End T_Newline
     {
-        $$ = std::make_shared<FlowControl>($1, std::move($2), std::move($4));
+        $$ = std::make_shared<FlowControl>($1, std::move($2), std::move($5));
     }
     | if_then_part instruction_list T_End
     {

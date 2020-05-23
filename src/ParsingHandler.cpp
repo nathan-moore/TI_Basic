@@ -47,9 +47,10 @@ void driver::Compile()
 
     BasicBlockFormer former;
     bbs = former.ParseBlocks(std::move(topNode));
+    former.DumpBBs();
 
     SSAFormer ssaFormer;
-    ssaFormer.FormSSABlocks(bbs);
+    ssaFormer.FormSSABlocks(former.getBBList());
 }
 
 int driver::parse(const std::string& fileName)

@@ -111,6 +111,23 @@ public:
 
     iterator begin() { return list.begin(); }
     iterator end() { return list.end(); }
+
+    std::unique_ptr<InstructionList> MoveOffStart(std::shared_ptr<AstNode>& node)
+    {
+        auto newList = std::make_unique<InstructionList>();
+        size_t i;
+        for (i = 0; i < list.size(); i++)
+        {
+            newList->push_back(list[i]);
+            if (list[i] == node)
+            {
+                break;
+            }
+        }
+
+        list.erase(list.begin(), list.begin() + i + 1);
+        return newList;
+    }
 };
 
 class BinaryExpNode : public ExpNode
@@ -139,12 +156,22 @@ public:
     std::unique_ptr<InstructionList>& getIfList();
     std::unique_ptr<InstructionList>& getElseList();
 
+    std::unique_ptr<InstructionList> moveIfList()
+    {
+        return std::move(ifList);
+    }
+
+    std::unique_ptr<InstructionList> moveElseList()
+    {
+        return std::move(elseList);
+    }
+
     //First Condition
     //Second First branch
     //Third Optional Else branch
     FlowControl(std::shared_ptr<ExpNode>, std::unique_ptr<InstructionList>, std::unique_ptr<InstructionList>);
     FlowControl(std::shared_ptr<ExpNode> n1, std::unique_ptr<InstructionList>&& n2)
-        :FlowControl(n1, std::move(n2), std::unique_ptr<InstructionList>{}) {}
+        :FlowControl(n1, std::move(n2), nullptr) {}
     void InOrderWalk(ASTWalker* walker) override;
     void PostOrderWalk(ASTWalker* walker) override;
     Node GetType() const override { return Node::FlowControl; }
@@ -152,10 +179,10 @@ public:
 
 class GotoNode : public AstNode
 {
-    std::variant<std::string, std::shared_ptr<BasicBlock>> destination;
+    std::variant<std::string, BasicBlock*> destination;
 
 public:
-    GotoNode(std::shared_ptr<BasicBlock> block)
+    GotoNode(BasicBlock* block)
         : destination(block) {}
 
     // Inherited via AstNode
@@ -163,7 +190,7 @@ public:
     virtual void PostOrderWalk(ASTWalker* walker) override;
     Node GetType() const override { return Node::GotoNode; }
 
-    std::shared_ptr<BasicBlock> getBB() { return std::get<std::shared_ptr<BasicBlock>>(destination); }
+    BasicBlock* getBB() { return std::get<BasicBlock*>(destination); }
 };
 
 class BasicJump : public AstNode
@@ -182,8 +209,8 @@ public:
     Node GetType() const override { return Node::BasicJump; }
 
     std::shared_ptr<ExpNode>& condReference() { return condition; }
-    std::shared_ptr<BasicBlock> getIfBB() { return ifJmp->getBB(); }
-    std::shared_ptr<BasicBlock> getElseBB() { return elseJmp->getBB(); }
+    BasicBlock* getIfBB() { return ifJmp->getBB(); }
+    BasicBlock* getElseBB() { return elseJmp->getBB(); }
 };
 
 class LblNode : public AstNode

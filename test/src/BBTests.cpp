@@ -6,11 +6,22 @@ void TestBB(std::string s)
 {
 	driver d;
 	d.parseString(s);
-	BasicBlockFormer f;
-	f.ParseBlocks(std::move(d.topNode));
+	d.Compile();
 }
 
 TEST_CASE("BBsFormed") {
 	TestBB(R"(Disp "Good"
 			  5 -> A)");
+}
+
+TEST_CASE("BBsFormed2") {
+	TestBB(R"(Disp "Good"
+			  5 -> A
+		      If (1 = 1)
+			  Then 
+			  Disp "Something"
+			  Else
+			  Disp "Else"
+		      END
+			  Disp "End")");
 }

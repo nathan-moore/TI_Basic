@@ -2,28 +2,32 @@
 
 #include <vector>
 #include <memory>
+#include <set>
 
 #include <ASTNode.hpp>
 
 class BasicBlock {
-	std::vector<std::weak_ptr<BasicBlock>> preBlocks;
-	std::vector<std::shared_ptr<BasicBlock>> postBlocks;
+	friend class BasicBlockFormer;
+	std::vector<BasicBlock*> preBlocks;
+	std::vector<BasicBlock*> postBlocks;
+	std::set<BasicBlock*> dominators;
 
 	std::unique_ptr<InstructionList> instructions;
+	int bbNum;
 public:
-	BasicBlock() 
-		:instructions(std::make_unique<InstructionList>())
+	BasicBlock(int num) 
+		:instructions(std::make_unique<InstructionList>()), bbNum(num)
 	{}
 
-	BasicBlock(std::unique_ptr<InstructionList> instructions)
-		: instructions(std::move(instructions)) {}
+	BasicBlock(std::unique_ptr<InstructionList> instructions, int num)
+		: instructions(std::move(instructions)), bbNum(num) {}
 
-	void AddPreBlock(std::shared_ptr<BasicBlock> block)
+	void AddPreBlock(BasicBlock* block)
 	{
 		preBlocks.push_back(block);
 	}
 
-	void AddPostBlock(std::shared_ptr<BasicBlock> block)
+	void AddPostBlock(BasicBlock* block)
 	{
 		postBlocks.push_back(block);
 	}
