@@ -186,6 +186,8 @@ void BasicBlockFormer::FormDominators(BasicBlock* entryPoint)
 				toSet = temp;
 			}
 
+			toSet.insert(bb);
+
 			if (toSet != bb->dominators)
 			{
 				changed = true;
