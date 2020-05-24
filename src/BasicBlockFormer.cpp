@@ -13,8 +13,7 @@ BasicBlockFormer::BasicBlockFormer()
 
 BasicBlock* BasicBlockFormer::ParseBlocks(std::unique_ptr<InstructionList> list)
 {
-	BasicBlock* topLevelBB = ParseBlocksInternal(std::move(list));
-	DumpBBs();
+	auto [topLevelBB, _] = ParseBlocksInternal(std::move(list));
 	FormDominators(topLevelBB);
 
 	return topLevelBB;
@@ -42,7 +41,7 @@ void BasicBlockFormer::DumpBBs()
 }
 
 //TODO: arena allocators for the BBs
-BasicBlock* BasicBlockFormer::ParseBlocksInternal(std::unique_ptr<InstructionList> list)
+std::tuple<BasicBlock*, BasicBlock*> BasicBlockFormer::ParseBlocksInternal(std::unique_ptr<InstructionList> list)
 {
 	BasicBlock* current = new BasicBlock(bbNum++);
 	bbs.push_back(current);
@@ -61,57 +60,75 @@ BasicBlock* BasicBlockFormer::ParseBlocksInternal(std::unique_ptr<InstructionLis
 			continue;
 		}
 
-		std::vector<BasicBlock*> last;
-		//We modify list here, so can't touch the iterator after this
 		auto newBB = new BasicBlock(bbNum++);
 		bbs.push_back(newBB);
+
+		std::shared_ptr<LblNode> lbl = std::make_shared<LblNode>(MakeLblName(), newBB);
+		newBB->getInstructions()->push_back(lbl);
 
 		if (type == Node::LblNode ||
 			type == Node::GotoNode)
 		{
 			if (type == Node::GotoNode)
+			{
 				current->getInstructions()->push_back(node);
+				fixUpNodes.insert(std::static_pointer_cast<GotoNode>(node));
+			}
+			else
+			{
+				newBB->getInstructions()->push_back(node); //We push along the node to allow for more information dumping
+				std::shared_ptr<LblNode> Lblnode = std::static_pointer_cast<LblNode>(node);
+				lookup.insert({ Lblnode->GetLbl(), Lblnode });
+			}
 
-			last.push_back(newBB);
+			std::shared_ptr<GotoNode> gotoNode = std::make_shared<GotoNode>(lbl);
+			current->getInstructions()->push_back(gotoNode);
+
+			//We don't have enough information to propegate edges here, so give up and come back later for a second pass
 		}
 		else if (type == Node::FlowControl)
 		{
 			std::shared_ptr<FlowControl> cntrl = std::static_pointer_cast<FlowControl>(node);
 
+			std::shared_ptr<GotoNode> elseBranch;
+			if (cntrl->getElseList() == nullptr)
+			{
+				elseBranch = std::make_shared<GotoNode>(lbl);
+			}
+			else
+			{
+				elseBranch = ParseBranchBlock(cntrl->moveElseList(), lbl);
+			}
+
 			std::shared_ptr<BasicJump> jmp = std::make_shared<BasicJump>(cntrl->getCond(),
-				ParseBranchBlock(cntrl->moveIfList()),
-				ParseBranchBlock(cntrl->moveElseList()));
+				ParseBranchBlock(cntrl->moveIfList(), lbl),
+				elseBranch);
 
 			current->getInstructions()->push_back(jmp);
-			last.push_back(jmp->getIfBB());
-			last.push_back(jmp->getElseBB());
-		}
 
-		for (BasicBlock* n : last)
-		{
-			newBB->AddPreBlock(n);
-			current->AddPostBlock(n);
-		
-			n->AddPostBlock(newBB);
-			n->AddPreBlock(current);
+			current->AddPostBlock(jmp->getIfBB());
+			current->AddPostBlock(jmp->getElseBB());
 		}
 
 		current = newBB;
-
-		if (type == Node::LblNode)
-		{
-			std::shared_ptr<LblNode> Lblnode = std::static_pointer_cast<LblNode>(node);
-			lookup.insert({ Lblnode->GetLbl(), last.at(0) });
-		}
 	}
 
-	return first;
+	return std::make_tuple(first, current);
 }
 
-std::shared_ptr<GotoNode> BasicBlockFormer::ParseBranchBlock(std::unique_ptr<InstructionList> list)
+std::shared_ptr<GotoNode> BasicBlockFormer::ParseBranchBlock(std::unique_ptr<InstructionList> list, std::shared_ptr<LblNode>& nxtLbl)
 {
-	BasicBlock* bb = ParseBlocksInternal(std::move(list));
-	return std::make_shared<GotoNode>(bb);
+	if (list == nullptr)
+		return nullptr;
+
+	auto [firstBB, lastBB] = ParseBlocksInternal(std::move(list));
+
+	std::shared_ptr<LblNode> lblNode = std::make_shared<LblNode>(MakeLblName(), firstBB);
+	firstBB->getInstructions()->push_front(lblNode);
+
+	std::shared_ptr<GotoNode> gotoNode = std::make_shared<GotoNode>(nxtLbl);
+	lastBB->getInstructions()->push_back(gotoNode);
+	return std::make_shared<GotoNode>(lblNode);
 }
 
 //A really simple and inefficient Dominator calculation algorithm
@@ -163,5 +180,25 @@ void BasicBlockFormer::FormDominators(BasicBlock* entryPoint)
 				bb->dominators = toSet;
 			}
 		}
+	}
+}
+
+std::string BasicBlockFormer::MakeLblName()
+{
+	return std::string("BBLabel") + std::to_string(bbLabelNum++);
+}
+
+void BasicBlockFormer::fixUpGotos()
+{
+	while (fixUpNodes.size() != 0)
+	{
+		std::shared_ptr<GotoNode> toFixUp = *fixUpNodes.begin();
+		fixUpNodes.erase(toFixUp);
+
+		if (toFixUp->HasBB())
+			continue;
+
+		auto LblNode = lookup[toFixUp->GetStr()];
+		toFixUp->SetLabel(LblNode);
 	}
 }

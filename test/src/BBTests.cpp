@@ -25,3 +25,15 @@ TEST_CASE("BBsFormed2") {
 		      END
 			  Disp "End")");
 }
+
+TEST_CASE("BBsFormed3") {
+	TestBB(R"(Disp "Good"
+			  5 -> A
+		      Lbl A
+			  If (A = 5)
+			  THEN
+			  6 -> A
+			  Goto A
+			  End
+			  Disp "End")");
+}

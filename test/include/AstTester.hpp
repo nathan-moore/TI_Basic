@@ -29,4 +29,5 @@ public:
     void WalkNode(BinaryExpNode*) override;
     void WalkNode(VariableNode*) override;
     void WalkNode(LiteralNode*) override;
+    void WalkNode(BasicJump*) override;
 };

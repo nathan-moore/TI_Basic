@@ -5,6 +5,9 @@
 #include <vector>
 #include <memory>
 #include <variant>
+#include <queue>
+#include <set>
+#include <cassert>
 
 #include "NodeVisitor.hpp"
 
@@ -37,6 +40,7 @@ class AstNode
 {
 public:
     virtual ~AstNode() {}
+    virtual void PreOrderWalk(ASTWalker* walker) = 0;
     virtual void InOrderWalk(ASTWalker* walker) = 0;
     virtual void PostOrderWalk(ASTWalker* walker) = 0;
     virtual Node GetType() const = 0;
@@ -56,9 +60,10 @@ class VariableNode : public ExpNode
     SSAVariable* ssaVariable;
 public:
 
-    VariableNode(std::string& str) : name(str), isAssignment(false), var(NULL)
+    VariableNode(std::string& str) : name(str), isAssignment(false), var(nullptr), ssaVariable(nullptr)
     { }
 
+    void PreOrderWalk(ASTWalker* walker) override;
     void InOrderWalk(ASTWalker* walker) override;
     void PostOrderWalk(ASTWalker* walker) override;
     Node GetType() const override { return Node::VariableNode; }
@@ -66,6 +71,7 @@ public:
     void SetVariable(Variable* variable) { var = variable; }
     Variable* getVariable() { return var; }
     void SetSSAVariable(SSAVariable* var) { ssaVariable = var; }
+    const std::string& GetName() { return name; }
 };
 
 class LiteralNode : public ExpNode
@@ -76,6 +82,7 @@ public:
     LiteralNode(int i) : literal(i) {}
 
     LiteralNode(float f) : literal(f) {}
+    void PreOrderWalk(ASTWalker* walker) override;
     void InOrderWalk(ASTWalker* walker) override;
     void PostOrderWalk(ASTWalker* walker) override;
     Node GetType() const override { return Node::LiteralNode; }
@@ -89,6 +96,7 @@ public:
     const Instructions instruction;
 
     InstructionNode(Instructions, std::string);
+    void PreOrderWalk(ASTWalker* walker) override;
     void InOrderWalk(ASTWalker* walker) override;
     void PostOrderWalk(ASTWalker* walker) override;
     Node GetType() const override { return Node::InstructionNode; }
@@ -102,8 +110,10 @@ class InstructionList
 public:
     InstructionList();
 
+    void push_front(std::shared_ptr<AstNode>);
     void push_back(std::shared_ptr<AstNode>);
 
+    void PreOrderWalk(ASTWalker* walker);
     void InOrderWalk(ASTWalker*);
     void PostOrderWalk(ASTWalker* walker);
 
@@ -138,6 +148,7 @@ public:
     const Instructions token;
 
     BinaryExpNode(Instructions, std::shared_ptr<ExpNode>, std::shared_ptr<ExpNode>);
+    void PreOrderWalk(ASTWalker* walker) override;
     void InOrderWalk(ASTWalker* walker) override;
     void PostOrderWalk(ASTWalker* walker) override;
     Node GetType() const override { return Node::InstructionNode; }
@@ -172,25 +183,44 @@ public:
     FlowControl(std::shared_ptr<ExpNode>, std::unique_ptr<InstructionList>, std::unique_ptr<InstructionList>);
     FlowControl(std::shared_ptr<ExpNode> n1, std::unique_ptr<InstructionList>&& n2)
         :FlowControl(n1, std::move(n2), nullptr) {}
+    void PreOrderWalk(ASTWalker* walker) override;
     void InOrderWalk(ASTWalker* walker) override;
     void PostOrderWalk(ASTWalker* walker) override;
     Node GetType() const override { return Node::FlowControl; }
 };
 
+class LblNode;
+
 class GotoNode : public AstNode
 {
-    std::variant<std::string, BasicBlock*> destination;
+    std::variant<std::string, std::shared_ptr<LblNode>> destination;
 
 public:
-    GotoNode(BasicBlock* block)
+    GotoNode(std::string block)
         : destination(block) {}
 
+    GotoNode(std::string& block)
+        : destination(block) {}
+
+    GotoNode(std::shared_ptr<LblNode> lbl)
+        : destination(lbl) {}
+
     // Inherited via AstNode
+    void PreOrderWalk(ASTWalker* walker) override;
     virtual void InOrderWalk(ASTWalker* walker) override;
     virtual void PostOrderWalk(ASTWalker* walker) override;
     Node GetType() const override { return Node::GotoNode; }
 
-    BasicBlock* getBB() { return std::get<BasicBlock*>(destination); }
+    bool HasBB();
+
+    BasicBlock* GetBB();
+    std::string& GetStr();
+
+    void SetLabel(std::shared_ptr<LblNode> lbl)
+    {
+        assert(!HasBB());
+        destination = lbl;
+    }
 };
 
 class BasicJump : public AstNode
@@ -204,24 +234,40 @@ public:
         ifJmp(ifNode),
         elseJmp(elseNode) {}
 
+    void PreOrderWalk(ASTWalker* walker) override;
     void InOrderWalk(ASTWalker* walker) override;
     void PostOrderWalk(ASTWalker* walker) override;
     Node GetType() const override { return Node::BasicJump; }
 
     std::shared_ptr<ExpNode>& condReference() { return condition; }
-    BasicBlock* getIfBB() { return ifJmp->getBB(); }
-    BasicBlock* getElseBB() { return elseJmp->getBB(); }
+    BasicBlock* getIfBB() { return ifJmp->GetBB(); }
+    BasicBlock* getElseBB() 
+    {
+        if (elseJmp != nullptr)
+            return elseJmp->GetBB();
+        else
+            return nullptr;
+    }
 };
 
 class LblNode : public AstNode
 {
     std::string name;
+    BasicBlock* containingBB;
 
 public:
+    LblNode(std::string str) : name(str), containingBB(nullptr) {}
+    LblNode(std::string str, BasicBlock* bb) : name(str), containingBB(bb) {}
+
     // Inherited via AstNode
+    void PreOrderWalk(ASTWalker* walker) override;
     virtual void InOrderWalk(ASTWalker* walker) override;
     Node GetType() const override { return Node::LblNode; }
     const std::string& GetLbl() const { return name; }
+    BasicBlock* GetBB() const { return containingBB; }
+
+    // Inherited via AstNode
+    virtual void PostOrderWalk(ASTWalker* walker) override;
 };
 
 class BinaryExpNodeBuilder
@@ -248,4 +294,23 @@ public:
     {
         return left == nullptr;
     }
+};
+
+
+class ASNodePrinter : public ASTWalker
+{
+    std::queue<BasicBlock*> toPrint;
+    std::set<BasicBlock*> printed;
+public:
+    // Inherited via ASTWalker
+    virtual void WalkNode(InstructionNode*) override;
+    virtual void WalkNode(FlowControl*) override;
+    virtual void WalkNode(BinaryExpNode*) override;
+    virtual void WalkNode(VariableNode*) override;
+    virtual void WalkNode(LiteralNode*) override;
+    virtual void WalkNode(LblNode*) override;
+    virtual void WalkNode(GotoNode*) override;
+    virtual void WalkNode(BasicJump*) override;
+
+    void WalkBBs(BasicBlock*);
 };

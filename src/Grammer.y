@@ -20,7 +20,7 @@
 %}
 
 %token T_If T_Equals T_Not_Equals T_Then T_Else T_Done T_End T_Compare_Equals T_Right_Paren T_Left_Paren
-%token T_Disp T_Plus T_Star T_Newline T_Colon T_Assign
+%token T_Disp T_Plus T_Star T_Newline T_Colon T_Assign T_Lbl T_Goto
 %token <char*> T_String T_Identifier
 %token <int> T_Int
 %token <float> T_Float
@@ -28,7 +28,7 @@
 %token END_OF_FILE 0
 
 %type <std::string> Displayable;
-%type <std::shared_ptr<AstNode>> command C_Disp if_stmt statement assign_statement whitespace_ignorant_statement
+%type <std::shared_ptr<AstNode>> command C_Disp if_stmt statement assign_statement whitespace_ignorant_statement lbl_statement goto_statement
 %type <std::unique_ptr<InstructionList>> instruction_list;
 %type <std::shared_ptr<ExpNode>> exp primary if_then_part base_exp factor postfix_exp;
 %type <std::shared_ptr<VariableNode>> id;
@@ -46,7 +46,7 @@ program:
 instruction_list:
     statement instruction_list
     {
-        $2->push_back($1);
+        $2->push_front($1);
         $$ = std::move($2);
     }
     | %empty
@@ -60,12 +60,13 @@ statement:
     {
         $$ = std::move($1);
     }
-    | if_stmt { $$ = std::move($1); }
 
 whitespace_ignorant_statement:
     command
-    { $$ = std::move($1); }
     | assign_statement
+    | lbl_statement
+    | goto_statement
+    | if_stmt
     { $$ = std::move($1); }
 
 assign_statement:
@@ -73,11 +74,23 @@ assign_statement:
     {
         auto assignmentNode = $3;
         assignmentNode->SetAssignment();
-        $$ =  std::make_shared<BinaryExpNode>(Instructions::Assign, $1, assignmentNode);
+        $$ = std::make_shared<BinaryExpNode>(Instructions::Assign, $1, assignmentNode);
     };
 
+lbl_statement:
+    T_Lbl T_Identifier
+    {
+        $$ = std::make_shared<LblNode>($2);
+    };
+
+goto_statement:
+    T_Goto T_Identifier
+    {
+        $$ = std::make_shared<GotoNode>(std::string($2));
+    }
+
 if_stmt:
-    if_then_part instruction_list T_Else T_Newline instruction_list T_End T_Newline
+    if_then_part instruction_list T_Else T_Newline instruction_list T_End
     {
         $$ = std::make_shared<FlowControl>($1, std::move($2), std::move($5));
     }

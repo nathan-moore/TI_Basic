@@ -24,6 +24,8 @@
 (?i:then) return parser::make_T_Then();
 (?i:else) return parser::make_T_Else();
 (?i:end) return parser::make_T_End();
+(?i:lbl) return parser::make_T_Lbl();
+(?i:goto) return parser::make_T_Goto();
 "+" return parser::make_T_Plus();
 "*" return parser::make_T_Star();
 [a-zA-Z_][a-zA-Z0-9_]* return parser::make_T_Identifier(yytext);
@@ -32,4 +34,4 @@
 \"[^\"\n]*\"? return parser::make_T_String(yytext);
 
 [ ] ;
-
+\t ;

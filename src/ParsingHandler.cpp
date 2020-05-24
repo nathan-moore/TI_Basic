@@ -29,7 +29,6 @@ int driver::parse(FILE* f)
     yy::parser parse(*this);
     //parse.set_debug_level(1);
     result = parse();
-
     fclose(f);
     return result;
 }
@@ -48,6 +47,8 @@ void driver::Compile()
     BasicBlockFormer former;
     bbs = former.ParseBlocks(std::move(topNode));
     former.DumpBBs();
+    ASNodePrinter printer;
+    printer.WalkBBs(bbs);
 
     SSAFormer ssaFormer;
     ssaFormer.FormSSABlocks(former.getBBList());

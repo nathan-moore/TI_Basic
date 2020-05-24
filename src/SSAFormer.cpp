@@ -50,7 +50,7 @@ void SSAFormer::FormSSABlocks(std::vector<BasicBlock*>& bbs)
 
 void SSAState::WalkNode(BinaryExpNode* node)
 {
-	if (node->token != Instructions::Equals)
+	if (node->token != Instructions::Assign)
 		return;
 
 	assert(node->rightNode->GetType() == Node::VariableNode);
@@ -113,6 +113,10 @@ void SSAState::WalkNode(GotoNode*)
 {
 }
 
+void SSAState::WalkNode(BasicJump*)
+{
+}
+
 //Back to things we care about...
 
 InVarState InVarState::GetNewState(Variable* v, BinaryExpNode* node)
@@ -120,6 +124,7 @@ InVarState InVarState::GetNewState(Variable* v, BinaryExpNode* node)
 	InVarState s;
 	SSAVariable* ssa = new SSAVariable(v, node, v->GetCount());
 	s.var = ssa;
+	s.count = 0;
 	return s;
 }
 

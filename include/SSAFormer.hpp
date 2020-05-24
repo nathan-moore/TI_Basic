@@ -50,6 +50,7 @@ public:
 	virtual void WalkNode(LiteralNode*) override;
 	virtual void WalkNode(LblNode*) override;
 	virtual void WalkNode(GotoNode*) override;
+	virtual void WalkNode(BasicJump*) override;
 	//variables exported by the bb
 };
 

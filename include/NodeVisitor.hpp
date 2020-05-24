@@ -7,6 +7,7 @@ class VariableNode;
 class LiteralNode;
 class LblNode;
 class GotoNode;
+class BasicJump;
 
 class ASTWalker {
 public:
@@ -17,4 +18,5 @@ public:
     virtual void WalkNode(LiteralNode*) = 0;
     virtual void WalkNode(LblNode*) = 0;
     virtual void WalkNode(GotoNode*) = 0;
+    virtual void WalkNode(BasicJump*) = 0;
 };

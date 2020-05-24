@@ -41,4 +41,9 @@ public:
 	{
 		return instructions;
 	}
+
+	int GetBBNum()
+	{
+		return bbNum;
+	}
 };
