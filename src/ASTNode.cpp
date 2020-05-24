@@ -360,6 +360,13 @@ void ASNodePrinter::WalkBBs(BasicBlock* firstBB)
         toPrint.pop();
 
         std::cout << "Printing bb: " << bb->GetBBNum() << std::endl;
+        std::cout << "BBDoms are: ";
+        for (BasicBlock* bb : *bb)
+        {
+            std::cout << bb->GetBBNum() << " ";
+        }
+        std::cout << std::endl;
+
         bb->getInstructions()->PreOrderWalk(this);
     }
 }

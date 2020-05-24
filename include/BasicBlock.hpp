@@ -24,11 +24,13 @@ public:
 
 	void AddPreBlock(BasicBlock* block)
 	{
+		assert(block != nullptr);
 		preBlocks.push_back(block);
 	}
 
 	void AddPostBlock(BasicBlock* block)
 	{
+		assert(block != nullptr);
 		postBlocks.push_back(block);
 	}
 
@@ -45,5 +47,17 @@ public:
 	int GetBBNum()
 	{
 		return bbNum;
+	}
+
+	using BBIter = std::set<BasicBlock*>::iterator;
+
+	BBIter begin()
+	{
+		return dominators.begin();
+	}
+
+	BBIter end()
+	{
+		return dominators.end();
 	}
 };

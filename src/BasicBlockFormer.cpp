@@ -14,6 +14,13 @@ BasicBlockFormer::BasicBlockFormer()
 BasicBlock* BasicBlockFormer::ParseBlocks(std::unique_ptr<InstructionList> list)
 {
 	auto [topLevelBB, _] = ParseBlocksInternal(std::move(list));
+	fixUpGotos();
+	fixUpPreds();
+
+	DumpBBs();
+	ASNodePrinter p;
+	p.WalkBBs(topLevelBB);
+
 	FormDominators(topLevelBB);
 
 	return topLevelBB;
@@ -72,17 +79,19 @@ std::tuple<BasicBlock*, BasicBlock*> BasicBlockFormer::ParseBlocksInternal(std::
 			if (type == Node::GotoNode)
 			{
 				current->getInstructions()->push_back(node);
-				fixUpNodes.insert(std::static_pointer_cast<GotoNode>(node));
+				fixUpNodes.insert({ std::static_pointer_cast<GotoNode>(node), current });
 			}
 			else
 			{
 				newBB->getInstructions()->push_back(node); //We push along the node to allow for more information dumping
 				std::shared_ptr<LblNode> Lblnode = std::static_pointer_cast<LblNode>(node);
 				lookup.insert({ Lblnode->GetLbl(), Lblnode });
+				Lblnode->SetBB(newBB);
 			}
 
 			std::shared_ptr<GotoNode> gotoNode = std::make_shared<GotoNode>(lbl);
 			current->getInstructions()->push_back(gotoNode);
+			current->AddPostBlock(newBB);
 
 			//We don't have enough information to propegate edges here, so give up and come back later for a second pass
 		}
@@ -121,6 +130,8 @@ std::shared_ptr<GotoNode> BasicBlockFormer::ParseBranchBlock(std::unique_ptr<Ins
 	if (list == nullptr)
 		return nullptr;
 
+	assert(nxtLbl->GetBB() != nullptr);
+
 	auto [firstBB, lastBB] = ParseBlocksInternal(std::move(list));
 
 	std::shared_ptr<LblNode> lblNode = std::make_shared<LblNode>(MakeLblName(), firstBB);
@@ -128,6 +139,7 @@ std::shared_ptr<GotoNode> BasicBlockFormer::ParseBranchBlock(std::unique_ptr<Ins
 
 	std::shared_ptr<GotoNode> gotoNode = std::make_shared<GotoNode>(nxtLbl);
 	lastBB->getInstructions()->push_back(gotoNode);
+	lastBB->AddPostBlock(nxtLbl->GetBB());
 	return std::make_shared<GotoNode>(lblNode);
 }
 
@@ -192,13 +204,26 @@ void BasicBlockFormer::fixUpGotos()
 {
 	while (fixUpNodes.size() != 0)
 	{
-		std::shared_ptr<GotoNode> toFixUp = *fixUpNodes.begin();
-		fixUpNodes.erase(toFixUp);
+		auto both = *fixUpNodes.begin();
+		fixUpNodes.erase(both);
+		auto [toFixUp, containingBB] = both;
 
 		if (toFixUp->HasBB())
 			continue;
 
 		auto LblNode = lookup[toFixUp->GetStr()];
 		toFixUp->SetLabel(LblNode);
+		containingBB->AddPostBlock(LblNode->GetBB());
+	}
+}
+
+void BasicBlockFormer::fixUpPreds()
+{
+	for (BasicBlock* bb : bbs)
+	{
+		for (BasicBlock* post : bb->postBlocks)
+		{
+			post->AddPreBlock(bb);
+		}
 	}
 }

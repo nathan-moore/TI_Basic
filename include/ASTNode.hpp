@@ -265,6 +265,11 @@ public:
     Node GetType() const override { return Node::LblNode; }
     const std::string& GetLbl() const { return name; }
     BasicBlock* GetBB() const { return containingBB; }
+    void SetBB(BasicBlock* bb)
+    {
+        assert(containingBB == nullptr);
+        containingBB = bb;
+    }
 
     // Inherited via AstNode
     virtual void PostOrderWalk(ASTWalker* walker) override;
