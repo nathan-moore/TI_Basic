@@ -11,6 +11,7 @@ class BasicBlock {
 	std::vector<BasicBlock*> preBlocks;
 	std::vector<BasicBlock*> postBlocks;
 	std::set<BasicBlock*> dominators;
+	std::set<BasicBlock*> dominanceFrontier;
 
 	std::unique_ptr<InstructionList> instructions;
 	int bbNum;
@@ -59,5 +60,15 @@ public:
 	BBIter end()
 	{
 		return dominators.end();
+	}
+
+	BBIter DFbegin()
+	{
+		return dominanceFrontier.begin();
+	}
+
+	BBIter DFend()
+	{
+		return dominanceFrontier.end();
 	}
 };

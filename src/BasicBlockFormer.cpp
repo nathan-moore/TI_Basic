@@ -22,6 +22,7 @@ BasicBlock* BasicBlockFormer::ParseBlocks(std::unique_ptr<InstructionList> list)
 	p.WalkBBs(topLevelBB);
 
 	FormDominators(topLevelBB);
+	FormDominanceFrontiers();
 
 	return topLevelBB;
 }
@@ -192,6 +193,24 @@ void BasicBlockFormer::FormDominators(BasicBlock* entryPoint)
 			{
 				changed = true;
 				bb->dominators = toSet;
+			}
+		}
+	}
+}
+
+void BasicBlockFormer::FormDominanceFrontiers()
+{
+	for (BasicBlock* bb : bbs)
+	{
+		for (BasicBlock* dominated : bb->dominators)
+		{
+			for (BasicBlock* post : dominated->postBlocks)
+			{
+				//If not, it'll be handeled later/already be handeled
+				if (bb->dominators.count(post) == 0)
+				{
+					bb->dominanceFrontier.insert(post);
+				}
 			}
 		}
 	}

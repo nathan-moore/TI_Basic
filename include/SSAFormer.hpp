@@ -11,15 +11,19 @@
 
 class SSAVariable {
 public:
+	bool isPhi;
+	SSAVariable* v1;
+	SSAVariable* v2;
+
 	uint32_t VN;
 	BinaryExpNode* set;
 	Variable* variable;
 
 	SSAVariable(Variable* v, BinaryExpNode* node, uint32_t version)
-		: VN(version), set(node), variable(v) {}
+		: isPhi(false), v1(nullptr), v2(nullptr), VN(version), set(node), variable(v) {}
 
 	SSAVariable()
-		: VN(UINT32_MAX), set(nullptr), variable(nullptr) {}
+		: v1(nullptr), v2(nullptr), VN(UINT32_MAX), set(nullptr), variable(nullptr) {}
 };
 
 class SSAState;
@@ -34,6 +38,8 @@ public:
 	void AddUsage();
 };
 
+class SSAFormer;
+
 //Per BB internal state
 class SSAState : public ASTWalker {
 public:
@@ -41,6 +47,12 @@ public:
 	std::unordered_map<Variable*, InVarState> inVars; //Variables for a BB that need to be matched
 	std::unordered_map<Variable*, SSAVariable*> outVars;
 	std::vector<InVarState> oldVars;
+
+	BasicBlock* boundBB;
+	SSAFormer* former;
+
+	SSAState(BasicBlock* bb, SSAFormer* f)
+		: boundBB(bb), former(f) {}
 
 	// Inherited via ASTWalker
 	virtual void WalkNode(InstructionNode*) override;
@@ -56,10 +68,15 @@ public:
 
 class SSAFormer {
 private:
+	friend class SSAState;
 	std::unordered_map<BasicBlock*, SSAState> stateMapping;
 	std::unordered_map<Variable*, std::set<BasicBlock*>> containingBBs;
+	std::unordered_map<Variable*, std::set<BasicBlock*>> defBBs;
+	
 	void FlowState(Variable* v);
 	void FormState(BasicBlock* bb);
+	void InsertPhiNode(Variable* v, BasicBlock* bb);
+	SSAVariable* GrabDef(Variable* v, BasicBlock*);
 public:
 	SSAFormer();
 	void FormSSABlocks(std::vector<BasicBlock*>& bbs);

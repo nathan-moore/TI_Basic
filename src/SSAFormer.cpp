@@ -6,8 +6,8 @@
 
 void SSAFormer::FormState(BasicBlock* bb)
 {
-	stateMapping.insert({ bb, {} });
-	SSAState* state = &stateMapping[&*bb];
+	stateMapping.insert({ bb, {bb, this} });
+	SSAState* state = &stateMapping.at(bb);
 
 	for (auto& inst : *bb->getInstructions())
 	{
@@ -17,18 +17,47 @@ void SSAFormer::FormState(BasicBlock* bb)
 	for (auto& pair : state->outVars)
 	{
 		Variable* var = pair.first;
-		if (containingBBs.count(var) == 0)
-		{
-			containingBBs.insert({ var, {} });
-		}
 
 		containingBBs[var].insert(bb);
 	}
 }
 
-void SSAFormer::FlowState(Variable*)
+SSAVariable* SSAFormer::GrabDef(Variable*, BasicBlock*)
 {
+	return nullptr;
+}
 
+void SSAFormer::InsertPhiNode(Variable*, BasicBlock*)
+{
+}
+
+//Based on http://ssabook.gforge.inria.fr/latest/book.pdf
+//p 31
+void SSAFormer::FlowState(Variable* v)
+{
+	std::set<BasicBlock*> phiBlocks;
+	std::set<BasicBlock*> containsBBs = containingBBs[v];
+
+	while (containsBBs.size() != 0)
+	{
+		BasicBlock* bb = *containsBBs.begin();
+		containsBBs.erase(bb);
+
+		for (auto iter = bb->DFbegin(); iter != bb->DFend(); iter++)
+		{
+			BasicBlock* DFBB = *iter;
+
+			if (phiBlocks.count(DFBB) != 0)
+				continue;
+
+			InsertPhiNode(v, DFBB);
+			phiBlocks.insert(DFBB);
+			if (containingBBs[v].count(DFBB) == 0)
+			{
+				containsBBs.insert(DFBB);
+			}
+		}
+	}
 }
 
 SSAFormer::SSAFormer()
@@ -66,6 +95,13 @@ void SSAState::WalkNode(BinaryExpNode* node)
 	state = inVars[v];
 
 	varNode->SetSSAVariable(state.var);
+
+	if (former->defBBs.count(v) == 0)
+	{
+		former->defBBs.insert({ v, {} });
+	}
+
+	former->defBBs[v].insert(boundBB);
 }
 
 void SSAState::WalkNode(VariableNode* var)
