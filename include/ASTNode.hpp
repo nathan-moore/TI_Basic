@@ -72,6 +72,7 @@ public:
     Variable* getVariable() { return var; }
     void SetSSAVariable(SSAVariable* var) { ssaVariable = var; }
     const std::string& GetName() { return name; }
+    SSAVariable* GetSSAVariable() { return ssaVariable; }
 };
 
 class LiteralNode : public ExpNode

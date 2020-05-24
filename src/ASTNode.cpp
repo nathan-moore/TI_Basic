@@ -1,5 +1,6 @@
 #include "ASTNode.hpp"
 #include "BasicBlock.hpp"
+#include "SSAFormer.hpp"
 
 #include <assert.h>
 #include <iostream>
@@ -315,6 +316,11 @@ void ASNodePrinter::WalkNode(BinaryExpNode* node)
 void ASNodePrinter::WalkNode(VariableNode* var)
 {
     std::cout << "VariableNode: " << var->GetName() << std::endl;
+    SSAVariable* ssa = var->GetSSAVariable();
+    if (ssa != nullptr)
+    {
+        std::cout << "SSA num is: " << ssa->VN << std::endl;
+    }
 }
 
 void ASNodePrinter::WalkNode(LiteralNode*)
@@ -368,5 +374,7 @@ void ASNodePrinter::WalkBBs(BasicBlock* firstBB)
         std::cout << std::endl;
 
         bb->getInstructions()->PreOrderWalk(this);
+    
+        std::cout << std::endl << std::endl;
     }
 }

@@ -122,7 +122,12 @@ void SSAState::WalkNode(BasicJump*)
 InVarState InVarState::GetNewState(Variable* v, BinaryExpNode* node)
 {
 	InVarState s;
-	SSAVariable* ssa = new SSAVariable(v, node, v->GetCount());
+
+	int VN = UINT32_MAX;
+	if (node != nullptr)
+		VN = v->GetCount();
+
+	SSAVariable* ssa = new SSAVariable(v, node, VN);
 	s.var = ssa;
 	s.count = 0;
 	return s;
