@@ -1,6 +1,7 @@
 #include "Driver.hh"
 #include "BasicBlockFormer.hpp"
 #include "SSAFormer.hpp"
+#include "TypeBuilder.hpp"
 
 #include <cstdlib>
 #include <iostream>
@@ -43,6 +44,9 @@ int driver::parseString(const std::string& str)
 void driver::Compile()
 {
     assert(topNode != nullptr);
+
+    TypeBuilder b;
+    b.WalkNode(topNode);
 
     BasicBlockFormer former;
     bbs = former.ParseBlocks(std::move(topNode));

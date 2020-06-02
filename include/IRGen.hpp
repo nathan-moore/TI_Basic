@@ -21,4 +21,22 @@ class IRGen : public TemplatedASTWalker<llvm::Value*>
 
 	void FormIR(std::shared_ptr<BasicBlock>);
 
+
+	// Inherited via TemplatedASTWalker
+	virtual llvm::Value* WalkNode(InstructionNode*) override;
+
+	virtual llvm::Value* WalkNode(FlowControl*, llvm::Value* Cond, llvm::Value* ifStatement, std::optional<llvm::Value*> elseStatement) override;
+
+	virtual llvm::Value* WalkNode(BinaryExpNode*, llvm::Value* left, llvm::Value* right) override;
+
+	virtual llvm::Value* WalkNode(VariableNode*) override;
+
+	virtual llvm::Value* WalkNode(LiteralNode*) override;
+
+	virtual llvm::Value* WalkNode(LblNode*) override;
+
+	virtual llvm::Value* WalkNode(GotoNode*) override;
+
+	virtual llvm::Value* WalkNode(BasicJump*, llvm::Value* Cond, llvm::Value* ifStatement, std::optional<llvm::Value*> elseStatement) override;
+
 };

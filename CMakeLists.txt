@@ -31,7 +31,8 @@ add_library(Comp_library
     src/BasicBlockFormer.cpp
     src/IRGen.cpp
     src/SymbolTable.cpp
-    src/SSAFormer.cpp)
+    src/SSAFormer.cpp
+    src/TypeBuilder.cpp)
 
 set(CMAKE_CXX_STANDARD 20)
 

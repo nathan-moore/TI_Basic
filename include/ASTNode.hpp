@@ -36,6 +36,14 @@ enum class Node
     BasicJump
 };
 
+enum class Type
+{
+    Float,
+    Integer,
+    Dynamic,
+    Unknown
+};
+
 class AstNode
 {
 public:
@@ -47,7 +55,26 @@ public:
 };
 
 class ExpNode : public AstNode
-{ };
+{ 
+private:
+    std::optional<Type> t;
+public:
+    Type GetExpType()
+    {
+        assert(t.has_value());
+        return t.value();
+    }
+
+    void SetExpType(Type type)
+    {
+        t = type;
+    }
+
+    bool IsExpTypeSet()
+    {
+        return t.has_value();
+    }
+};
 
 class Variable;
 class SSAVariable;
