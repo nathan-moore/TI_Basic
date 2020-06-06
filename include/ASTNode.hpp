@@ -120,7 +120,7 @@ public:
 class InstructionNode: public AstNode
 {
 public:
-    const std::variant<std::string> items;
+    const std::variant<std::string> items; //TODO: non-string disps
     const Instructions instruction;
 
     InstructionNode(Instructions, std::string);

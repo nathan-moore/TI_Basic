@@ -2,6 +2,7 @@
 #include "BasicBlockFormer.hpp"
 #include "SSAFormer.hpp"
 #include "TypeBuilder.hpp"
+#include "llvmJit.hpp"
 
 #include <cstdlib>
 #include <iostream>
@@ -57,6 +58,17 @@ void driver::Compile()
 
     ASNodePrinter printer;
     printer.WalkBBs(bbs);
+
+    IRGen gen;
+    gen.FormIR(bb, former.getBBList());
+    module = gen.MoveModule();
+}
+
+void driver::EmitCode()
+{
+    llvmInMemCompiler comp;
+    comp.addModule(std::move(module));
+    //TODO: return fp or something
 }
 
 int driver::parse(const std::string& fileName)

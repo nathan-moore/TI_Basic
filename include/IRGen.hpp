@@ -7,20 +7,29 @@
 
 #include <llvm/IR/Module.h>
 #include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/IRBuilder.h>
 
 class IRGen : public TemplatedASTWalker<llvm::Value*>
 {
 	llvm::LLVMContext context;
-	llvm::Module module;
+	std::unique_ptr<llvm::Module> module;
+	llvm::IRBuilder<> builder;
 
+public:
 	IRGen()
-		: module("TI Basic Something", context)
+		: context(),
+		module(new llvm::Module("TI Basic Something", context )),
+		builder(context)
 	{
 
 	}
 
-	void FormIR(std::shared_ptr<BasicBlock>);
+	void FormIR(BasicBlock*, std::vector<BasicBlock*>&);
 
+	std::unique_ptr<llvm::Module> MoveModule()
+	{
+		return std::move(module);
+	}
 
 	// Inherited via TemplatedASTWalker
 	virtual llvm::Value* WalkNode(InstructionNode*) override;

@@ -5,6 +5,8 @@
 #include "stdio.h"
 #include "SymbolTable.hpp"
 
+#include <llvm/IR/Module.h>
+
 class driver
 {
 private:
@@ -15,6 +17,7 @@ public:
   std::unique_ptr<InstructionList> topNode;
   BasicBlock* bbs;
   SymbolTable table;
+  std::unique_ptr<llvm::Module> module;
   
   driver();
   int parse (const std::string& f);
