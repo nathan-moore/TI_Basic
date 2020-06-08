@@ -6,7 +6,8 @@ void TestBB(std::string s)
 {
 	driver d;
 	d.parseString(s);
-	d.Compile();
+	//d.Compile();
+	//have to look at dump, or hope it asserts
 }
 
 TEST_CASE("BBsFormed") {

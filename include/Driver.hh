@@ -7,6 +7,8 @@
 
 #include <llvm/IR/Module.h>
 
+typedef void (*voidFunc)();
+
 class driver
 {
 private:
@@ -17,6 +19,7 @@ public:
   std::unique_ptr<InstructionList> topNode;
   BasicBlock* bbs;
   SymbolTable table;
+  llvm::LLVMContext context;
   std::unique_ptr<llvm::Module> module;
   
   driver();
@@ -24,6 +27,7 @@ public:
   int parseString(const std::string& f);
   void noop() {}
   void Compile();
+  voidFunc EmitCode();
 };
 
 # define YY_DECL \

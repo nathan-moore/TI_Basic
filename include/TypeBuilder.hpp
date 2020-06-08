@@ -1,7 +1,7 @@
 #include "PostOrderWalkerHelper.hpp"
 #include "ASTNode.hpp"
 
-class TypeBuilder : TemplatedASTWalker<Type>
+class TypeBuilder : public TemplatedASTWalker<Type>
 {
 public:
 	void WalkNode(std::unique_ptr<InstructionList>&);

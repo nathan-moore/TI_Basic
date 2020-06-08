@@ -2,7 +2,7 @@
 
 void TypeBuilder::WalkNode(std::unique_ptr<InstructionList>& node)
 {
-	PostOrderWalkerHelper<TypeBuilder, Type> helper(*this);
+	PostOrderWalkerHelper<TypeBuilder*, Type> helper(this);
 	node->PostOrderWalk(&helper);
 }
 

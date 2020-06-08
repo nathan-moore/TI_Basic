@@ -29,16 +29,20 @@ InstructionList::InstructionList() {}
 
 void InstructionList::PreOrderWalk(ASTWalker* walker)
 {
+    walker->WalkList(this);
     for (std::shared_ptr<AstNode> node : list)
     {
+        walker->TopLevelNode();
         node->PreOrderWalk(walker);
     }
 }
 
 void InstructionList::InOrderWalk(ASTWalker* walker)
 {
+    walker->WalkList(this);
     for (std::shared_ptr<AstNode> node : list)
     {
+        walker->TopLevelNode();
         node->InOrderWalk(walker);
     }
 }
@@ -48,7 +52,9 @@ void InstructionList::PostOrderWalk(ASTWalker* walker)
     for (std::shared_ptr<AstNode> node : list)
     {
         node->PostOrderWalk(walker);
+        walker->TopLevelNode();
     }
+    walker->WalkList(this);
 }
 
 void InstructionList::push_front(std::shared_ptr<AstNode> node)

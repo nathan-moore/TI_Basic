@@ -8,6 +8,7 @@ class LiteralNode;
 class LblNode;
 class GotoNode;
 class BasicJump;
+class InstructionList;
 
 class ASTWalker {
 public:
@@ -19,4 +20,14 @@ public:
     virtual void WalkNode(LblNode*) = 0;
     virtual void WalkNode(GotoNode*) = 0;
     virtual void WalkNode(BasicJump*) = 0;
+
+    virtual void WalkList(InstructionList*)
+    {
+        return;
+    }
+
+    virtual void TopLevelNode()
+    {
+        return;
+    }
 };

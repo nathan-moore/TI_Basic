@@ -11,15 +11,16 @@
 
 class IRGen : public TemplatedASTWalker<llvm::Value*>
 {
-	llvm::LLVMContext context;
-	std::unique_ptr<llvm::Module> module;
+	std::unique_ptr<llvm::Module>& module;
 	llvm::IRBuilder<> builder;
+	llvm::LLVMContext* context;
+	llvm::BasicBlock* currBB;
 
 public:
-	IRGen()
-		: context(),
-		module(new llvm::Module("TI Basic Something", context )),
-		builder(context)
+	IRGen(llvm::LLVMContext* c, std::unique_ptr<llvm::Module>& mod)
+		: module(mod),
+		builder(*c),
+		context(c)
 	{
 
 	}
