@@ -39,6 +39,7 @@ void TestCode(const std::string& code, const std::string& expectedOutput)
 
 	//std::cout << "Exited with status" << WEXITSTATUS(status) << std::endl;
 
+	//seek to beginning
 	long error = lseek(fd, 0, 0);
 	REQUIRE(error != -1);
 
