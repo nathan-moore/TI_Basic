@@ -15,7 +15,6 @@ void TestCode(const std::string& code, const std::string& expectedOutput)
 	d.parseString(code);
 	d.Compile();
 
-	//FILE* temp = tmpfile();
 	int fd = open("tmpFile", O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
 	REQUIRE(fd >= 0);
 
@@ -36,8 +35,6 @@ void TestCode(const std::string& code, const std::string& expectedOutput)
 
 	//int status;
 	wait(NULL);
-
-	//std::cout << "Exited with status" << WEXITSTATUS(status) << std::endl;
 
 	//seek to beginning
 	long error = lseek(fd, 0, 0);
