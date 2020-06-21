@@ -1,6 +1,8 @@
 #include <cstdio>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <cstdlib>
 #include <unistd.h>
 #include <cstring>
@@ -13,14 +15,18 @@ void TestCode(const std::string& code, const std::string& expectedOutput)
 	d.parseString(code);
 	d.Compile();
 
-	FILE* temp = tmpfile();
+	//FILE* temp = tmpfile();
+	int fd = open("tmpFile", O_RDWR | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+	REQUIRE(fd >= 0);
 
-	pid_t pid = 0;// fork();
+	pid_t pid = fork();
+	REQUIRE(pid >= 0);
+
 	if (pid == 0)
 	{
 		//child
-		//int fd = fileno(temp);
-		//dup2(fd, STDOUT_FILENO);
+		dup2(fd, STDOUT_FILENO);
+		close(fd);
 
 		voidFunc f = d.EmitCode();
 		f();
@@ -28,12 +34,17 @@ void TestCode(const std::string& code, const std::string& expectedOutput)
 		exit(0);
 	}
 
-	int status;
-	waitpid(pid, &status, WUNTRACED | WCONTINUED);
+	//int status;
+	wait(NULL);
 
-	std::cout << "Exited with status" << WEXITSTATUS(status) << std::endl;
-	char* line = nullptr;
-	fscanf(temp, "%ms", &line);
+	//std::cout << "Exited with status" << WEXITSTATUS(status) << std::endl;
 
-	REQUIRE((strcmp(line, expectedOutput.c_str()) == 0));
+	long error = lseek(fd, 0, 0);
+	REQUIRE(error != -1);
+
+	std::vector<char> buffer(expectedOutput.length() + 1);
+	ssize_t count = read(fd, buffer.data(), buffer.size());
+
+	REQUIRE(count > 0);
+	REQUIRE((strncmp(buffer.data(), expectedOutput.c_str(), buffer.size()) == 0));
 }

@@ -17,6 +17,7 @@
     #include "ASTNode.hpp"
     #include "Grammer.tab.hh"
     #include "Driver.hh"
+    #include <strings.h>
 %}
 
 %token T_If T_Equals T_Not_Equals T_Then T_Else T_Done T_End T_Compare_Equals T_Right_Paren T_Left_Paren
@@ -225,7 +226,8 @@ C_Disp:
 Displayable:
     T_String
     {
-        $$ = std::string($1);
+        int len = strlen($1);
+        $$ = std::string($1 + 1, len - 2);
     };
 
 Ending:
