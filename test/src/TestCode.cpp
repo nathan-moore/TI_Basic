@@ -45,6 +45,8 @@ void TestCode(const std::string& code, const std::string& expectedOutput)
 	std::vector<char> buffer(expectedOutput.length() + 1);
 	ssize_t count = read(fd, buffer.data(), buffer.size());
 
+	close(fd);
+
 	REQUIRE(count > 0);
 	REQUIRE((strncmp(buffer.data(), expectedOutput.c_str(), buffer.size()) == 0));
 }
