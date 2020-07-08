@@ -4,10 +4,12 @@
 #include "BasicBlock.hpp"
 
 #include <memory>
+#include <unordered_map>
 
 #include <llvm/IR/Module.h>
 #include <llvm/IR/LLVMContext.h>
 #include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/GlobalVariable.h>
 
 class IRGen : public TemplatedASTWalker<llvm::Value*>
 {
@@ -15,6 +17,11 @@ class IRGen : public TemplatedASTWalker<llvm::Value*>
 	llvm::IRBuilder<> builder;
 	llvm::LLVMContext* context;
 	llvm::BasicBlock* currBB;
+
+	std::unordered_map<VariableNode*, llvm::GlobalVariable> variableMapping;
+
+	llvm::GlobalVariable& GetGlobal(VariableNode* var);
+	llvm::Type* MapType(Type);
 
 public:
 	IRGen(llvm::LLVMContext* c, std::unique_ptr<llvm::Module>& mod)
@@ -33,7 +40,7 @@ public:
 	}
 
 	// Inherited via TemplatedASTWalker
-	virtual llvm::Value* WalkNode(InstructionNode*) override;
+	virtual llvm::Value* WalkNode(InstructionNode*, std::optional<std::vector<llvm::Value*>>) override;
 
 	virtual llvm::Value* WalkNode(FlowControl*, llvm::Value* Cond, llvm::Value* ifStatement, std::optional<llvm::Value*> elseStatement) override;
 

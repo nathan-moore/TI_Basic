@@ -3,6 +3,7 @@
 
 #include "BasicBlock.hpp"
 #include "NodeVisitor.hpp"
+#include "ASTNode.hpp"
 
 #include <memory>
 #include <unordered_map>
@@ -11,19 +12,16 @@
 
 class SSAVariable {
 public:
-	bool isPhi;
-	SSAVariable* v1;
-	SSAVariable* v2;
-
 	uint32_t VN;
 	BinaryExpNode* set;
 	Variable* variable;
+	Type t;
 
 	SSAVariable(Variable* v, BinaryExpNode* node, uint32_t version)
-		: isPhi(false), v1(nullptr), v2(nullptr), VN(version), set(node), variable(v) {}
+		: VN(version), set(node), variable(v), t(Type::Unknown) {}
 
 	SSAVariable()
-		: v1(nullptr), v2(nullptr), VN(UINT32_MAX), set(nullptr), variable(nullptr) {}
+		: VN(UINT32_MAX), set(nullptr), variable(nullptr), t(Type::Unknown) {}
 };
 
 class SSAState;
@@ -76,7 +74,6 @@ private:
 	void FlowState(Variable* v);
 	void FormState(BasicBlock* bb);
 	void InsertPhiNode(Variable* v, BasicBlock* bb);
-	SSAVariable* GrabDef(Variable* v, BasicBlock*);
 public:
 	SSAFormer();
 	void FormSSABlocks(std::vector<BasicBlock*>& bbs);

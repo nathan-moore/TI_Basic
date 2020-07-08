@@ -22,10 +22,6 @@ void SSAFormer::FormState(BasicBlock* bb)
 	}
 }
 
-SSAVariable* SSAFormer::GrabDef(Variable*, BasicBlock*)
-{
-	return nullptr;
-}
 
 void SSAFormer::InsertPhiNode(Variable*, BasicBlock*)
 {
@@ -113,6 +109,7 @@ void SSAState::WalkNode(VariableNode* var)
 
 	if (outVars.count(v) > 0)
 	{
+		//definition in the same block
 		var->SetSSAVariable(outVars[v]);
 		return;
 	}

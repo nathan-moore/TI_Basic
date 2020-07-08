@@ -5,7 +5,7 @@
 #include <assert.h>
 #include <iostream>
 
-InstructionNode::InstructionNode(Instructions i, std::string s)
+InstructionNode::InstructionNode(Instructions i, const DisplayHelper& s)
     :     items(s), 
     instruction(i)
 {}
@@ -13,15 +13,34 @@ InstructionNode::InstructionNode(Instructions i, std::string s)
 void InstructionNode::PreOrderWalk(ASTWalker * walker)
 {
     walker->WalkNode(this);
+
+    if (instruction == Instructions::Disp)
+    {
+        DisplayHelper helper = std::get<DisplayHelper>(items);
+        auto lamda = [=](std::shared_ptr<VariableNode>& node) {node->PreOrderWalk(walker); };
+        helper.VistNodes(lamda);
+    }
 }
 
 void InstructionNode::InOrderWalk(ASTWalker* walker)
 {
     walker->WalkNode(this);
+ 
+    if (instruction == Instructions::Disp)
+    {
+        DisplayHelper helper = std::get<DisplayHelper>(items);
+        helper.VistNodes([=](std::shared_ptr<VariableNode>& node) {node->InOrderWalk(walker); });
+    }
 }
 
 void InstructionNode::PostOrderWalk(ASTWalker* walker)
 {
+    if (instruction == Instructions::Disp)
+    {
+        DisplayHelper helper = std::get<DisplayHelper>(items);
+        helper.VistNodes([=](std::shared_ptr<VariableNode>& node) {node->PostOrderWalk(walker); });
+    }
+
     walker->WalkNode(this);
 }
 
@@ -187,6 +206,20 @@ void VariableNode::PostOrderWalk(ASTWalker* walker)
     walker->WalkNode(this);
 }
 
+void VariableNode::SetExpType(Type t)
+{
+    assert(ssaVariable != nullptr);
+    ssaVariable->t = t;
+}
+
+Type VariableNode::GetExpType()
+{
+    if (ssaVariable == nullptr)
+        return Type::Unknown;
+
+    return ssaVariable->t;
+}
+
 void LblNode::PreOrderWalk(ASTWalker* walker)
 {
     walker->WalkNode(this);
@@ -294,6 +327,37 @@ std::string InstToString(Instructions node)
     return inst;
 }
 
+std::string TypeToString(Type t)
+{
+    std::string str;
+
+    switch (t)
+    {
+    case Type::Float:
+        str = "Float";
+        break;
+    case Type::Integer:
+        str = "Integer";
+        break;
+    case Type::Dynamic:
+        str = "Dynamic";
+        break;
+    case Type::Unknown:
+        str = "Unknown";
+        break;
+    default:
+        str = "Default";
+        break;
+    }
+
+    return str;
+}
+
+std::ostream& operator<<(std::ostream& os, Type t)
+{
+    return os << TypeToString(t);
+}
+
 void ASNodePrinter::WalkNode(InstructionNode* node)
 {
     std::cout << "Instruction Node ";
@@ -303,7 +367,7 @@ void ASNodePrinter::WalkNode(InstructionNode* node)
 
     if (node->instruction == Instructions::Disp)
     {
-        std::cout << " " << std::get<0>(node->items);
+        std::cout << " " << std::get<0>(node->items).GetPrintableString();
     }
 
     std::cout << std::endl;
@@ -321,7 +385,7 @@ void ASNodePrinter::WalkNode(BinaryExpNode* node)
 
 void ASNodePrinter::WalkNode(VariableNode* var)
 {
-    std::cout << "VariableNode: " << var->GetName() << std::endl;
+    std::cout << "VariableNode: " << var->GetName() << " Type: " << var->GetExpType() << std::endl;
     SSAVariable* ssa = var->GetSSAVariable();
     if (ssa != nullptr)
     {
@@ -329,9 +393,9 @@ void ASNodePrinter::WalkNode(VariableNode* var)
     }
 }
 
-void ASNodePrinter::WalkNode(LiteralNode*)
+void ASNodePrinter::WalkNode(LiteralNode* node)
 {
-    std::cout << "Literal Node" << std::endl;
+    std::cout << "Literal Node Type:" << node->GetExpType() << std::endl;
 }
 
 void ASNodePrinter::WalkNode(LblNode* node)
@@ -383,4 +447,49 @@ void ASNodePrinter::WalkBBs(BasicBlock* firstBB)
     
         std::cout << std::endl << std::endl;
     }
+}
+
+std::string DisplayHelper::GetPrintableString() const
+{
+    if (IsTriviableDisplayable())
+    {
+        return GetTrivialString();
+    }
+    else
+    {
+        return GetPrintfFormat();
+    }
+}
+
+bool DisplayHelper::IsTriviableDisplayable() const
+{
+    return std::holds_alternative<std::string>(displayable);
+}
+
+const std::string& DisplayHelper::GetTrivialString() const
+{
+    assert(IsTriviableDisplayable());
+    return std::get<std::string>(displayable);
+}
+
+std::string DisplayHelper::GetPrintfFormat() const
+{
+    std::string str;
+
+    const std::vector<std::shared_ptr<VariableNode>>& disp = std::get<1>(displayable);
+    for (const std::shared_ptr<VariableNode>& node : disp)
+    {
+        Type t = node->GetExpType();
+        if (t == Type::Float)
+            str += "%f";
+        else if (t == Type::Integer)
+            str += "%i";
+        else
+        {
+            assert(false);
+            return "";
+        }
+    }
+
+    return str;
 }

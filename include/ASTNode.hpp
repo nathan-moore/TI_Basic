@@ -57,22 +57,24 @@ public:
 class ExpNode : public AstNode
 { 
 private:
-    std::optional<Type> t;
+    Type t;
 public:
-    Type GetExpType()
+    ExpNode()
+        : t(Type::Unknown) {}
+
+    virtual Type GetExpType()
     {
-        assert(t.has_value());
-        return t.value();
+        return t;
     }
 
-    void SetExpType(Type type)
+    virtual void SetExpType(Type type)
     {
         t = type;
     }
 
     bool IsExpTypeSet()
     {
-        return t.has_value();
+        return GetExpType() != Type::Unknown;
     }
 };
 
@@ -100,6 +102,8 @@ public:
     void SetSSAVariable(SSAVariable* var) { ssaVariable = var; }
     const std::string& GetName() { return name; }
     SSAVariable* GetSSAVariable() { return ssaVariable; }
+    void SetExpType(Type) override;
+    Type GetExpType() override;
 };
 
 class LiteralNode : public ExpNode
@@ -116,14 +120,74 @@ public:
     Node GetType() const override { return Node::LiteralNode; }
 };
 
+class DisplayHelper
+{
+    std::variant<std::string, std::vector<std::shared_ptr<VariableNode>>> displayable;
+public:
+    DisplayHelper()
+    {}
+
+    DisplayHelper(const std::string& str) : displayable(str)
+    {}
+    
+    DisplayHelper(const std::string&& str) : displayable(str)
+    {}
+
+    DisplayHelper(const std::vector<std::shared_ptr<VariableNode>>& vec) : displayable(vec)
+    {}
+
+    std::string GetPrintableString() const;
+
+    bool IsTriviableDisplayable() const;
+
+    const std::string& GetTrivialString() const;
+
+    std::string GetPrintfFormat() const;
+
+    int GetVariadicCount() const
+    {
+        assert(!IsTriviableDisplayable());
+        auto var = std::get<1>(displayable);
+        return var.size();
+    }
+
+    template <typename Function>
+    void VistNodes(Function func)
+    {
+        if (IsTriviableDisplayable())
+            return;
+
+        for (std::shared_ptr<VariableNode>& node : std::get<1>(displayable))
+        {
+            func(node);
+        }
+    }
+
+    using const_iterator = std::vector<std::shared_ptr<VariableNode>>::const_iterator;
+
+    const_iterator cbegin() const
+    {
+        assert(!IsTriviableDisplayable());
+
+        return std::get<1>(displayable).begin();
+    }
+
+    const_iterator cend() const
+    {
+        assert(!IsTriviableDisplayable());
+
+        return std::get<1>(displayable).end();
+    }
+};
+
 //TODO: change?
 class InstructionNode: public AstNode
 {
 public:
-    const std::variant<std::string> items; //TODO: non-string disps
+    const std::variant<DisplayHelper> items;
     const Instructions instruction;
 
-    InstructionNode(Instructions, std::string);
+    InstructionNode(Instructions, const DisplayHelper&);
     void PreOrderWalk(ASTWalker* walker) override;
     void InOrderWalk(ASTWalker* walker) override;
     void PostOrderWalk(ASTWalker* walker) override;

@@ -17,10 +17,6 @@ BasicBlock* BasicBlockFormer::ParseBlocks(std::unique_ptr<InstructionList> list)
 	fixUpGotos();
 	fixUpPreds();
 
-	DumpBBs();
-	ASNodePrinter p;
-	p.WalkBBs(topLevelBB);
-
 	FormDominators(topLevelBB);
 	FormDominanceFrontiers();
 

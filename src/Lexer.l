@@ -32,6 +32,7 @@
 \n return parser::make_T_Newline();
 : return parser::make_T_Colon();
 \"[^\"\n]*\"? return parser::make_T_String(yytext);
+"," return parser::make_T_Comma();
 
 [ ] ;
 \t ;

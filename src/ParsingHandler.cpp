@@ -77,7 +77,7 @@ void driver::Compile()
     assert(topNode != nullptr);
 
     TypeBuilder b;
-    b.WalkNode(topNode);
+    b.WalkNode(topNode, false);
 
     BasicBlockFormer former;
     bbs = former.ParseBlocks(std::move(topNode));
@@ -85,6 +85,8 @@ void driver::Compile()
 
     SSAFormer ssaFormer;
     ssaFormer.FormSSABlocks(former.getBBList());
+
+    b.WalkNode((*bbs->begin())->getInstructions(), true); //TODO: fixme
 
     ASNodePrinter printer;
     printer.WalkBBs(bbs);

@@ -21,20 +21,21 @@
 %}
 
 %token T_If T_Equals T_Not_Equals T_Then T_Else T_Done T_End T_Compare_Equals T_Right_Paren T_Left_Paren
-%token T_Disp T_Plus T_Star T_Newline T_Colon T_Assign T_Lbl T_Goto
+%token T_Disp T_Plus T_Star T_Newline T_Colon T_Assign T_Lbl T_Goto T_Comma
 %token <char*> T_String T_Identifier
 %token <int> T_Int
 %token <float> T_Float
 
 %token END_OF_FILE 0
 
-%type <std::string> Displayable;
+%type <DisplayHelper> Displayable;
 %type <std::shared_ptr<AstNode>> command C_Disp if_stmt statement assign_statement whitespace_ignorant_statement lbl_statement goto_statement
 %type <std::unique_ptr<InstructionList>> instruction_list;
 %type <std::shared_ptr<ExpNode>> exp primary if_then_part base_exp factor postfix_exp;
 %type <std::shared_ptr<VariableNode>> id;
 %type <BinaryExpNodeBuilder> exp_prefix factor_prefix;
 %type <Instructions> mulop addop
+%type <std::vector<std::shared_ptr<VariableNode>>> VariableList VariableListTail
 
 %%
 
@@ -227,7 +228,29 @@ Displayable:
     T_String
     {
         int len = strlen($1);
-        $$ = std::string($1 + 1, len - 2);
+        $$ = DisplayHelper(std::string($1 + 1, len - 2));
+    }
+    | VariableList
+    {
+        $$ = DisplayHelper($1);
+    };
+
+VariableList:
+    id VariableListTail
+    {
+        $2.push_back($1);
+        $$ = $2;
+    };
+
+VariableListTail:
+    %empty
+    {
+        $$ = std::vector<std::shared_ptr<VariableNode>>();
+    }
+    | T_Comma id VariableListTail
+    {
+        $3.push_back($2);
+        $$ = $3;
     };
 
 Ending:

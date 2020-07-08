@@ -10,7 +10,7 @@
 template<class T>
 class TemplatedASTWalker {
 public:
-	virtual T WalkNode(InstructionNode*) = 0;
+	virtual T WalkNode(InstructionNode*, std::optional<std::vector<T>>) = 0;
 	virtual T WalkNode(FlowControl*, T Cond, T ifStatement, std::optional<T> elseStatement) = 0;
 	virtual T WalkNode(BinaryExpNode*, T left, T right) = 0;
 	virtual T WalkNode(VariableNode*) = 0;
@@ -31,7 +31,7 @@ class PostOrderWalkerHelper : public ASTWalker {
 
 	void PushIfNotDefault(U temp)
 	{
-		if (temp != U())
+		if (!std::is_pointer<U>::value || temp != U())
 			returnedArgs.push(temp);
 	}
 public:
@@ -44,7 +44,27 @@ public:
 	// Inherited via ASTWalker
 	virtual void WalkNode(InstructionNode* node) override
 	{
-		PushIfNotDefault(walker->WalkNode(node));
+		std::optional<std::vector<U>> dispArgs;
+		if (node->instruction == Instructions::Disp)
+		{
+			auto& helper = std::get<DisplayHelper>(node->items);
+
+			if (!helper.IsTriviableDisplayable())
+			{
+				int count = helper.GetVariadicCount();
+				std::vector<U> vec(count);
+				for (int i = 0; i < count; i++)
+				{
+					assert(returnedArgs.size() != 0);
+					vec.insert(vec.begin(), returnedArgs.top());
+					returnedArgs.pop();
+				}
+
+				dispArgs = vec;
+			}
+		}
+
+		PushIfNotDefault(walker->WalkNode(node, dispArgs));
 	}
 
 	virtual void WalkNode(FlowControl* node) override
