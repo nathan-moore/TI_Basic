@@ -17,22 +17,25 @@
     #include "ASTNode.hpp"
     #include "Grammer.tab.hh"
     #include "Driver.hh"
+    #include <strings.h>
 %}
 
 %token T_If T_Equals T_Not_Equals T_Then T_Else T_Done T_End T_Compare_Equals T_Right_Paren T_Left_Paren
-%token T_Disp T_Plus T_Star T_Newline T_Colon T_Assign
+%token T_Disp T_Plus T_Star T_Newline T_Colon T_Assign T_Lbl T_Goto T_Comma
 %token <char*> T_String T_Identifier
 %token <int> T_Int
 %token <float> T_Float
 
 %token END_OF_FILE 0
 
-%type <std::string> Displayable;
-%type <std::shared_ptr<AstNode>> command C_Disp if_stmt statement assign_statement;
+%type <DisplayHelper> Displayable;
+%type <std::shared_ptr<AstNode>> command C_Disp if_stmt statement assign_statement whitespace_ignorant_statement lbl_statement goto_statement
 %type <std::unique_ptr<InstructionList>> instruction_list;
-%type <std::shared_ptr<ExpNode>> exp primary if_then_part base_exp factor postfix_exp id;
+%type <std::shared_ptr<ExpNode>> exp primary if_then_part base_exp factor postfix_exp;
+%type <std::shared_ptr<VariableNode>> id;
 %type <BinaryExpNodeBuilder> exp_prefix factor_prefix;
 %type <Instructions> mulop addop
+%type <std::vector<std::shared_ptr<VariableNode>>> VariableList VariableListTail
 
 %%
 
@@ -45,7 +48,7 @@ program:
 instruction_list:
     statement instruction_list
     {
-        $2->push_back($1);
+        $2->push_front($1);
         $$ = std::move($2);
     }
     | %empty
@@ -54,20 +57,44 @@ instruction_list:
     };
 
 statement:
-    command T_Newline { $$ = std::move($1); }
-    | if_stmt { $$ = std::move($1); }
-    | assign_statement {$$ = std::move($1);}
+    whitespace_ignorant_statement T_Newline
+    | whitespace_ignorant_statement END_OF_FILE
+    {
+        $$ = std::move($1);
+    }
+
+whitespace_ignorant_statement:
+    command
+    | assign_statement
+    | lbl_statement
+    | goto_statement
+    | if_stmt
+    { $$ = std::move($1); }
 
 assign_statement:
     exp T_Assign id
     {
-        $$ =  std::make_shared<BinaryExpNode>(Instructions::Assign, $1, $3);
+        auto assignmentNode = $3;
+        assignmentNode->SetAssignment();
+        $$ = std::make_shared<BinaryExpNode>(Instructions::Assign, $1, assignmentNode);
     };
 
-if_stmt:
-    if_then_part instruction_list T_Else instruction_list T_End
+lbl_statement:
+    T_Lbl T_Identifier
     {
-        $$ = std::make_shared<FlowControl>($1, std::move($2), std::move($4));
+        $$ = std::make_shared<LblNode>($2);
+    };
+
+goto_statement:
+    T_Goto T_Identifier
+    {
+        $$ = std::make_shared<GotoNode>(std::string($2));
+    }
+
+if_stmt:
+    if_then_part instruction_list T_Else T_Newline instruction_list T_End
+    {
+        $$ = std::make_shared<FlowControl>($1, std::move($2), std::move($5));
     }
     | if_then_part instruction_list T_End
     {
@@ -180,8 +207,11 @@ mulop:
 id:
      T_Identifier 
      {
-        //TODO
-        $$ = std::make_shared<VariableNode>();
+        std::string name($1);
+        auto varNode = std::make_shared<VariableNode>(name);
+        Variable* variable = drv.table.AddVariableUse(name, varNode);
+        varNode->SetVariable(variable);
+        $$ = varNode;
      };
 
 command:
@@ -197,7 +227,30 @@ C_Disp:
 Displayable:
     T_String
     {
-        $$ = std::string($1);
+        int len = strlen($1);
+        $$ = DisplayHelper(std::string($1 + 1, len - 2));
+    }
+    | VariableList
+    {
+        $$ = DisplayHelper($1);
+    };
+
+VariableList:
+    id VariableListTail
+    {
+        $2.push_back($1);
+        $$ = $2;
+    };
+
+VariableListTail:
+    %empty
+    {
+        $$ = std::vector<std::shared_ptr<VariableNode>>();
+    }
+    | T_Comma id VariableListTail
+    {
+        $3.push_back($2);
+        $$ = $3;
     };
 
 Ending:

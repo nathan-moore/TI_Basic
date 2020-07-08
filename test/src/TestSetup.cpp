@@ -69,3 +69,8 @@ void AstTestWalker::WalkNode(GotoNode*)
 {
     CheckNode(Node::GotoNode);
 }
+
+void AstTestWalker::WalkNode(BasicJump*)
+{
+    CheckNode(Node::BasicJump);
+}
